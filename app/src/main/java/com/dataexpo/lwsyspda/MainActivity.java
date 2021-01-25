@@ -78,6 +78,7 @@ public class MainActivity extends BascActivity implements View.OnClickListener {
         Login login = new Login();
         login.setNumber("123");
         login.setPhone("123654");
+        
         Call<NetResult> call = httpList.login(login);
         call.enqueue(new Callback<NetResult>() {
             @Override
