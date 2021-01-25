@@ -1,17 +1,21 @@
 package com.dataexpo.lwsyspda;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.dataexpo.lwsyspda.activity.BascActivity;
+import com.dataexpo.lwsyspda.activity.SelectActivity;
 import com.dataexpo.lwsyspda.entity.Login;
 import com.dataexpo.lwsyspda.entity.LoginResult;
 import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.retrofitInf.ApiService;
+import com.dataexpo.lwsyspda.retrofitInf.URLs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.concurrent.Executors;
@@ -46,7 +50,7 @@ public class MainActivity extends BascActivity implements View.OnClickListener {
 
     private void initRetrofit() {
         mRetrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.1.13:8080/LWSYS/")
+                .baseUrl(URLs.baseUrl)
                 .addConverterFactory(JacksonConverterFactory.create(new ObjectMapper()))
                 .callbackExecutor(Executors.newSingleThreadExecutor())
                 .build();
@@ -74,24 +78,47 @@ public class MainActivity extends BascActivity implements View.OnClickListener {
     }
 
     private void login() {
-        ApiService httpList = mRetrofit.create(ApiService.class);
-        Login login = new Login();
-        login.setNumber("123");
-        login.setPhone("123654");
-        
-        Call<NetResult> call = httpList.login(login);
-        call.enqueue(new Callback<NetResult>() {
-            @Override
-            public void onResponse(Call<NetResult> call, Response<NetResult> response) {
+        if (checkInput()) {
+            ApiService httpList = mRetrofit.create(ApiService.class);
+            Login login = new Login();
+            login.setNumber(et_login_name.getText().toString());
+            login.setPhone(et_login_pswd.getText().toString());
 
-                NetResult result = response.body();
-                Log.i(TAG, "onResponse" + result.getErrmsg() + " ! " + result.getErrcode());
-            }
+            Call<NetResult> call = httpList.login(login);
+            call.enqueue(new Callback<NetResult>() {
+                @Override
+                public void onResponse(Call<NetResult> call, Response<NetResult> response) {
 
-            @Override
-            public void onFailure(Call<NetResult> call, Throwable t) {
-                Log.i(TAG, "onFailure" + t.toString());
-            }
-        });
+                    NetResult result = response.body();
+                    Log.i(TAG, "onResponse" + result.getErrmsg() + " ! " + result.getErrcode());
+                    if (result.getErrcode() != -1) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                loginSuccess();
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<NetResult> call, Throwable t) {
+                    Log.i(TAG, "onFailure" + t.toString());
+                }
+            });
+        }
+    }
+
+    private void loginSuccess() {
+        startActivity(new Intent(mContext, SelectActivity.class));
+    }
+
+    private boolean checkInput() {
+        if ("".equals(et_login_name.getText().toString()) || "".equals(et_login_pswd.getText().toString())) {
+            Toast.makeText(mContext, "账号或密码错误", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true;
     }
 }

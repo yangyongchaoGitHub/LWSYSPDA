@@ -3,4 +3,8 @@
     <string name="login_name">登录名</string>
     <string name="login_pswd">密码</string>
     <string name="login">登录</string>
+    <string name="model_select_title">选择</string>
+    <string name="choice">备货</string>
+    <string name="inbound">入库</string>
+    <string name="call_repairs">报修</string>
 </resources>
