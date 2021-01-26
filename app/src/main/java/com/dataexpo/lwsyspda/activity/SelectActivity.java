@@ -1,6 +1,7 @@
 package com.dataexpo.lwsyspda.activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -38,6 +39,7 @@ public class SelectActivity extends BascActivity implements View.OnClickListener
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.tv_model_choice:
+                startActivity(new Intent(mContext, ChoiceActivity.class));
                 break;
             case R.id.tv_model_inbound:
                 break;

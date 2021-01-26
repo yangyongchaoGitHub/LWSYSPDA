@@ -7,4 +7,8 @@
     <string name="choice">备货</string>
     <string name="inbound">入库</string>
     <string name="call_repairs">报修</string>
+    <string name="bom_time">项目日期</string>
+    <string name="bom_user">下单人</string>
+    <string name="show_bom">查看订单</string>
+    <string name="go_choice">备货</string>
 </resources>

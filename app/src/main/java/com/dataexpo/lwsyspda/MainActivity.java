@@ -35,26 +35,19 @@ public class MainActivity extends BascActivity implements View.OnClickListener {
     private EditText et_login_pswd;
     private TextView tv_login;
 
-    private Retrofit mRetrofit;
+    Retrofit mRetrofit;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mContext = this;
-
+        mRetrofit = MyApplication.getmRetrofit();
+        if (mRetrofit == null) {
+            MyApplication.createRetrofit();
+        }
         initView();
         initData();
-        initRetrofit();
-    }
-
-    private void initRetrofit() {
-        mRetrofit = new Retrofit.Builder()
-                .baseUrl(URLs.baseUrl)
-                .addConverterFactory(JacksonConverterFactory.create(new ObjectMapper()))
-                .callbackExecutor(Executors.newSingleThreadExecutor())
-                .build();
-
     }
 
     private void initData() {
@@ -91,14 +84,14 @@ public class MainActivity extends BascActivity implements View.OnClickListener {
 
                     NetResult result = response.body();
                     Log.i(TAG, "onResponse" + result.getErrmsg() + " ! " + result.getErrcode());
-                    if (result.getErrcode() != -1) {
+                    //if (result.getErrcode() != -1) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 loginSuccess();
                             }
                         });
-                    }
+                    //}
                 }
 
                 @Override
