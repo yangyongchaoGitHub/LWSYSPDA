@@ -60,7 +60,6 @@ public class ChoiceListAdapter extends RecyclerView.Adapter<ChoiceListHolder> im
 
     @Override
     public void onBindViewHolder(@NonNull ChoiceListHolder holder, final int position) {
-        Log.i(TAG, "onBindViewHolder " + position);
         holder.itemView.setTag(position);
         // 添加数据
         holder.tv_bom_time.setText(mList.get(position).getName());
@@ -85,7 +84,6 @@ public class ChoiceListAdapter extends RecyclerView.Adapter<ChoiceListHolder> im
             }
         });
 
-        Log.i(TAG, "size " + mList.size());
         //渲染奇数行
 //        if ((position & 0x01) == 0) {
 //            holder.itemView.setBackgroundColor(Color.parseColor("#FF7CAFF7"));

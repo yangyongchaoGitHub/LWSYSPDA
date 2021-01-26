@@ -11,4 +11,7 @@
     <string name="bom_user">下单人</string>
     <string name="show_bom">查看订单</string>
     <string name="go_choice">备货</string>
+    <string name="device_name">设备名称</string>
+    <string name="device_class">设备系列号</string>
+    <string name="repair_status">维修状态</string>
 </resources>

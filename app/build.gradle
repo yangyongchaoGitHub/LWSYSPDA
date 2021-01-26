@@ -36,6 +36,7 @@ dependencies {
     compile group: 'com.squareup.retrofit2', name: 'retrofit', version: '2.9.0'
     compile group: 'com.squareup.retrofit2', name: 'converter-jackson', version: '2.9.0'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:3.0.4'
 //    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.1'
 //    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.12.1'
 //    compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.12.1'

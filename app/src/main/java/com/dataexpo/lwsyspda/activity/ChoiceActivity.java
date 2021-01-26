@@ -1,6 +1,7 @@
 package com.dataexpo.lwsyspda.activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -104,6 +105,11 @@ public class ChoiceActivity extends BascActivity implements OnItemClickListener 
     @Override
     public void onItemClick(View view, int position) {
         Log.i(TAG, "onItemClick " + position + " " + dataList.get(position).getId());
-
+        Intent intent =new Intent(mContext, DeviceChoiceActivity.class);
+        Bundle bundle=new Bundle();
+        //传递name参数为tinyphp
+        bundle.putInt("bomId", dataList.get(position).getId());
+        intent.putExtras(bundle);
+        startActivity(intent);
     }
 }

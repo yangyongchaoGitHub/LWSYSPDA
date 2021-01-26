@@ -8,4 +8,8 @@ public class URLs {
     public static final String loginUrl = "login/login2m" + postfix;
 
     public static final String bomListUrl = "pda/bom/getBomList" + postfix;
+
+    public static final String bomSeriesUrl = "pda/bom/queryBomSeries" + postfix;
+
+    public static final String bomDeviceUrl = "pda/bom/queryBomDevice" + postfix;
 }
