@@ -8,20 +8,30 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.concurrent.Executors;
 
+import realid.rfidlib.MyLib;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class MyApplication extends Application {
     private static Context context;
     private static Retrofit mRetrofit;
+    private static MyApplication myApp;
+    private MyLib idataLib;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        myApp = this;
+        idataLib = new MyLib(this);
         context = getApplicationContext();
         createRetrofit();
     }
-
+    public static MyApplication getMyApp() {
+        return myApp;
+    }
+    public MyLib getIdataLib() {
+        return idataLib;
+    }
     public static Context getContext() {
         return context;
     }

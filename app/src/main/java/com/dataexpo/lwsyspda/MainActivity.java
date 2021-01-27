@@ -16,6 +16,7 @@ import com.dataexpo.lwsyspda.entity.LoginResult;
 import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.retrofitInf.ApiService;
 import com.dataexpo.lwsyspda.retrofitInf.URLs;
+import com.dataexpo.lwsyspda.rfid.GetRFIDThread;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.concurrent.Executors;
@@ -36,6 +37,8 @@ public class MainActivity extends BascActivity implements View.OnClickListener {
     private TextView tv_login;
 
     Retrofit mRetrofit;
+
+    private GetRFIDThread rfidThread = GetRFIDThread.getInstance();//RFID标签信息获取线程
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +49,9 @@ public class MainActivity extends BascActivity implements View.OnClickListener {
         if (mRetrofit == null) {
             MyApplication.createRetrofit();
         }
+        MyApplication.getMyApp().getIdataLib().changeConfig(true); //初始化开启把枪和串口配置
+        Log.e("poweron = ", MyApplication.getMyApp().getIdataLib().powerOn() + " ");
+        rfidThread.start();
         initView();
         initData();
     }
@@ -114,4 +120,24 @@ public class MainActivity extends BascActivity implements View.OnClickListener {
 
         return true;
     }
+
+    @Override
+    protected void onDestroy() {
+        MyApplication.getMyApp().getIdataLib().stopInventory();
+//        if (mEmshStatusReceiver != null) {
+//            unregisterReceiver(mEmshStatusReceiver);
+//            mEmshStatusReceiver = null;
+//        }
+//        if (mTimer != null || mTimerTask != null) {
+//            mTimerTask.cancel();
+//            mTimer.cancel();
+//            mTimerTask = null;
+//            mTimer = null;
+//        }
+        rfidThread.destoryThread();
+        Log.e("powoff = ", MyApplication.getMyApp().getIdataLib().powerOff() + "");
+        MyApplication.getMyApp().getIdataLib().changeConfig(false);
+        super.onDestroy();
+    }
+
 }

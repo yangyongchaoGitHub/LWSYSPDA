@@ -24,4 +24,7 @@ public interface BomService {
 
     @GET(bomDeviceUrl)
     Call<NetResult<List<Device>>> getBomDevice(@Query("bomId") int bomId);
+
+    @GET(bomFindDeviceInfoUrl)
+    Call<NetResult<Device>> queryDeviceInfo(@Query("code") String code);
 }
