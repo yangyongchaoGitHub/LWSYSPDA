@@ -49,6 +49,7 @@
         <activity android:name=".activity.SelectActivity"/>
         <activity android:name=".activity.ChoiceActivity"/>
         <activity android:name=".activity.DeviceChoiceActivity"/>
+        <activity android:name=".activity.InboundChoiceActivity"/>
     </application>
 
 </manifest>

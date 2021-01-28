@@ -27,4 +27,7 @@ public interface BomService {
 
     @GET(bomFindDeviceInfoUrl)
     Call<NetResult<Device>> queryDeviceInfo(@Query("code") String code);
+
+    @GET(bomFindDeviceInfoByRfidUrl)
+    Call<NetResult<Device>> queryDeviceInfoByRfid(@Query("rfid") String rfid);
 }

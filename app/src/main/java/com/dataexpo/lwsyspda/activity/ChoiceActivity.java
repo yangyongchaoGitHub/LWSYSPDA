@@ -36,6 +36,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
+/**
+ * 备货单
+ */
 public class ChoiceActivity extends BascActivity implements OnItemClickListener {
     private static final String TAG = SelectActivity.class.getSimpleName();
     private Context mContext;
@@ -46,12 +49,18 @@ public class ChoiceActivity extends BascActivity implements OnItemClickListener 
 
     Retrofit mRetrofit;
 
+    private int type = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choice);
         mContext = this;
         mRetrofit = MyApplication.getmRetrofit();
+        Bundle bundle = this.getIntent().getExtras();
+        if (bundle != null) {
+            type = bundle.getInt("type");
+        }
         initView();
         initData();
 
@@ -65,7 +74,8 @@ public class ChoiceActivity extends BascActivity implements OnItemClickListener 
 
         BomService bomService = mRetrofit.create(BomService.class);
 
-        Call<NetResult<List<Bom>>> call = bomService.getBomList(1, 10, null, null, null);
+        //查询项目单
+        Call<NetResult<List<Bom>>> call = bomService.getBomList(1, 10, null, type, null);
 
         call.enqueue(new Callback<NetResult<List<Bom>>>() {
             @Override
@@ -105,11 +115,20 @@ public class ChoiceActivity extends BascActivity implements OnItemClickListener 
     @Override
     public void onItemClick(View view, int position) {
         Log.i(TAG, "onItemClick " + position + " " + dataList.get(position).getId());
-        Intent intent =new Intent(mContext, DeviceChoiceActivity.class);
-        Bundle bundle=new Bundle();
-        //传递name参数为tinyphp
-        bundle.putInt("bomId", dataList.get(position).getId());
-        intent.putExtras(bundle);
-        startActivity(intent);
+        Intent intent = null;
+        if (type == 0) {
+            intent = new Intent(mContext, DeviceChoiceActivity.class);
+        } else if (type == 1) {
+            intent = new Intent(mContext, InboundChoiceActivity.class);
+        } else if (type == 2) {
+            intent = new Intent(mContext, DeviceChoiceActivity.class);
+        }
+        if (intent != null) {
+            Bundle bundle = new Bundle();
+            //传递name参数为tinyphp
+            bundle.putInt("bomId", dataList.get(position).getId());
+            intent.putExtras(bundle);
+            startActivity(intent);
+        }
     }
 }

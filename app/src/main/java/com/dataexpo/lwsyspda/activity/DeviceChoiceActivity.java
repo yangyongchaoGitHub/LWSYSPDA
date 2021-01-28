@@ -16,10 +16,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.dataexpo.lwsyspda.MyApplication;
 import com.dataexpo.lwsyspda.R;
-import com.dataexpo.lwsyspda.adapter.ChoiceListAdapter;
 import com.dataexpo.lwsyspda.adapter.DeviceChoiceAdapter;
 import com.dataexpo.lwsyspda.common.Utils;
-import com.dataexpo.lwsyspda.entity.Bom;
 import com.dataexpo.lwsyspda.entity.BomHouseInfo;
 import com.dataexpo.lwsyspda.entity.Device;
 import com.dataexpo.lwsyspda.entity.NetResult;
@@ -29,7 +27,9 @@ import com.dataexpo.lwsyspda.rfid.listener.BackResult;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -49,8 +49,11 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
 
     private List<BomHouseInfo> bomHouseInfos = new ArrayList<>();
     private List<Device> devices = new ArrayList<>();
-    private int bomId;
 
+    //保存rfid卡号和信号强度
+    private Map<String, RfidRequest> rfidLocal = new HashMap<>();
+
+    private int bomId;
     //扫描的二维码的内容
     private String barCode;
 
@@ -59,6 +62,12 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
     HashMap<Integer, Integer> soundMap = new HashMap<Integer, Integer>();
 
     private long startTime, usTim, pauseTime;
+
+    class RfidRequest {
+        String rfid;
+        String rssi;
+        int status = 0;  //0未发起请求， 1请求中， 2请求返回失败， 3请求返回成功, 4请求返回未找到设备
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,7 +139,7 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
                             Toast.makeText(mContext, "数据库找不到设备", Toast.LENGTH_SHORT).show();
                         } else {
                             Log.i(TAG, "device name: " + result.getData().getName());
-                            addShowDevice(result.getData());
+                            addShowDevice(result.getData(), false);
                         }
                     }
                 });
@@ -143,11 +152,78 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
         });
     }
 
-    private void addShowDevice(Device device) {
-        devices.add(device);
-        adapter.notifyDataSetChanged();
-        adapter.addData(device);
+    private void queryDeviceInfoByRfid(String rfid) {
+        BomService bomService = mRetrofit.create(BomService.class);
+        Log.i(TAG, "queryDeviceInfoByRfid " + rfid);
+        Call<NetResult<Device>> call = bomService.queryDeviceInfoByRfid(rfid);
 
+        call.enqueue(new Callback<NetResult<Device>>() {
+            @Override
+            public void onResponse(Call<NetResult<Device>> call, Response<NetResult<Device>> response) {
+
+                String rfidStr = String.valueOf(call.request().body());
+                RfidRequest request = rfidLocal.get(rfidStr);
+
+                NetResult<Device> result = response.body();
+                if (result == null) {
+                    return;
+                }
+
+                Log.i(TAG, "device name: " + result.getData() + " " + result.getErrcode());
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (result.getErrcode() == -1) {
+                            Toast.makeText(mContext, "数据库找不到设备", Toast.LENGTH_SHORT).show();
+                            if (request != null) {
+                                request.status = 4;
+                            }
+                        } else {
+                            Log.i(TAG, "device name: " + result.getData().getName());
+                            addShowDevice(result.getData(), false);
+                            if (request != null) {
+                                request.status = 3;
+                            }
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Call<NetResult<Device>> call, Throwable t) {
+                String rfidStr = String.valueOf(call.request().body());
+                //将失败的状态设置为2
+                RfidRequest request = rfidLocal.get(rfidStr);
+                if (request != null) {
+                    request.status = 2;
+                }
+                Log.i(TAG, "onFailure" + t.toString());
+            }
+        });
+    }
+
+    private void addShowDevice(Device device, boolean bChange) {
+        Iterator<Device> iterator = devices.iterator();
+        boolean bEexist = false;
+        while (iterator.hasNext()) {
+            Device d = iterator.next();
+            if (d.getId().equals(device.getId())) {
+                //设备已存在
+                if (bChange) {
+                    iterator.remove();
+                    devices.add(device);
+                    bEexist = true;
+                    break;
+                }
+            }
+        }
+
+        if (!bEexist) {
+            devices.add(device);
+        }
+
+        adapter.notifyDataSetChanged();
     }
 
     private void initView() {
@@ -220,6 +296,7 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
 
     private void scanEnd() {
         barCode = et_input.getText().toString().trim();
+
         if (TextUtils.isEmpty(barCode)) {
             Toast.makeText(mContext, "请输入或扫描证件条形码", Toast.LENGTH_SHORT).show();
             return;
@@ -241,8 +318,41 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
             for (String t : tagData) {
                 Log.i(TAG, "--- tagData " + t);
             }
+            // 卡号
             String epc = tagData[1];
             String rssiStr = tagData[2];
+
+            RfidRequest request = rfidLocal.get(epc);
+
+            //扫描到的设备不在已有列表中
+            if (request != null) {
+                RfidRequest add = new RfidRequest();
+                add.rfid = epc;
+                add.rssi = rssiStr;
+                rfidLocal.put(epc, add);
+
+            } else {
+                //设备已经扫描到过
+                if (!rssiStr.equals(request.rssi)) {
+                    //信号强度有变动， 找设备，然后修改，再设置
+                    Iterator<Device> iterator = devices.iterator();
+                    boolean bEexist = false;
+                    while (iterator.hasNext()) {
+                        Device d = iterator.next();
+                        if (epc.equals(d.getRfid())) {
+                            //设备已存在
+                            d.setRfid(rssiStr);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            //未请求和请求失败的，需要进行请求
+            if (request.status == 0 || request.status == 2) {
+                request.status = 1;
+                queryDeviceInfoByRfid(request.rfid);
+            }
         }
     }
 

@@ -19,4 +19,6 @@ public class URLs {
 
     // 通过设备的code查询设备详情
     public static final String bomFindDeviceInfoUrl = "pda/bom/findDeviceInfoByCode" + postfix;
+    // 通过设备rfid编码查看设备详情
+    public static final String bomFindDeviceInfoByRfidUrl = "pda/bom/findDeviceInfoByRfid" + postfix;
 }

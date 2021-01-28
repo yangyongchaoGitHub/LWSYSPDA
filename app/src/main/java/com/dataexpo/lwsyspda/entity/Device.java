@@ -1,5 +1,7 @@
 package com.dataexpo.lwsyspda.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -27,6 +29,12 @@ public class Device implements Serializable {
     private Date regDate;
 
     private Integer bomId;
+    //rfid卡号
+    private String rfid;
+
+    @JsonIgnore
+    private String rssi;
+
     public Integer getId() {
         return id;
     }
@@ -98,5 +106,21 @@ public class Device implements Serializable {
     }
     public void setBomId(Integer bomId) {
         this.bomId = bomId;
+    }
+
+    public String getRfid() {
+        return rfid;
+    }
+
+    public void setRfid(String rfid) {
+        this.rfid = rfid;
+    }
+
+    public String getRssi() {
+        return rssi;
+    }
+
+    public void setRssi(String rssi) {
+        this.rssi = rssi;
     }
 }

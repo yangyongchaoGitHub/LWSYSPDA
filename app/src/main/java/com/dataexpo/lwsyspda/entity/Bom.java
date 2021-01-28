@@ -29,6 +29,8 @@ public class Bom implements Serializable {
     private Date regTime;
     //下单账号id
     private Integer loginId;
+    //下单人姓名
+    private String regName;
     //物料单状态(0订单未确认，1订单已确认2已备货3已发货4已收货)
     private Integer status;
     //备货人id
@@ -210,5 +212,13 @@ public class Bom implements Serializable {
     }
     public void setHouseName(String houseName) {
         this.houseName = houseName;
+    }
+
+    public String getRegName() {
+        return regName;
+    }
+
+    public void setRegName(String regName) {
+        this.regName = regName;
     }
 }

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.dataexpo.lwsyspda.R;
 import com.dataexpo.lwsyspda.activity.SelectActivity;
 import com.dataexpo.lwsyspda.adapter.holders.ChoiceListHolder;
+import com.dataexpo.lwsyspda.common.Utils;
 import com.dataexpo.lwsyspda.entity.Bom;
 import com.dataexpo.lwsyspda.listener.OnItemClickListener;
 
@@ -62,11 +63,11 @@ public class ChoiceListAdapter extends RecyclerView.Adapter<ChoiceListHolder> im
     public void onBindViewHolder(@NonNull ChoiceListHolder holder, final int position) {
         holder.itemView.setTag(position);
         // 添加数据
-        holder.tv_bom_time.setText(mList.get(position).getName());
-        holder.tv_sender.setText(mList.get(position).getHouseId() + "");
-        holder.tv_user.setText(mList.get(position).getLoginId() + "");
+        holder.tv_bom_name.setText(mList.get(position).getName());
+        holder.tv_bom_reg_time.setText(Utils.formatDatetoString(mList.get(position).getRegTime()));
+        holder.tv_bom_reg_user.setText(mList.get(position).getRegName());
 
-        holder.tv_show_bom.setOnClickListener(new View.OnClickListener() {
+        holder.root.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mItemClickListener!= null) {
@@ -74,22 +75,6 @@ public class ChoiceListAdapter extends RecyclerView.Adapter<ChoiceListHolder> im
                 }
             }
         });
-
-        holder.tv_show_choice.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mItemClickListener!= null) {
-                    mItemClickListener.onItemClick(v, position);
-                }
-            }
-        });
-
-        //渲染奇数行
-//        if ((position & 0x01) == 0) {
-//            holder.itemView.setBackgroundColor(Color.parseColor("#FF7CAFF7"));
-//        } else {
-//            holder.itemView.setBackgroundColor(Color.WHITE);
-//        }
     }
 
     @Override

@@ -2,6 +2,9 @@ package com.dataexpo.lwsyspda.common;
 
 import android.text.TextUtils;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class Utils {
     public static final int INPUT_SUCCESS = 0;
     public static final int INPUT_HAVE_NET_ADDRESS = 1;
@@ -9,6 +12,8 @@ public class Utils {
     public static final int INPUT_CHECK_NET_ADDRESS = 3;
     public static final int INPUT_NULL = 4;
     public static final int INPUT_NO_CHECK = 99;
+
+    public static final String dateRule = "yyyy-MM-dd HH:mm:ss";
 
     public static int checkInput(String input) {
         return checkInput(input, INPUT_CHECK_NET_ADDRESS);
@@ -32,5 +37,25 @@ public class Utils {
         }
         //TODO: check int or order code
         return INPUT_SUCCESS;
+    }
+
+    public static Date formatStringtoDate(String strDate) {
+        try {
+            Date d = null;
+            if (!"".equals(strDate)) {
+                d = new SimpleDateFormat(dateRule).parse(strDate);
+            }
+            return d;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static String formatDatetoString(Date date) {
+        try {
+            return new SimpleDateFormat(dateRule).format(date);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
