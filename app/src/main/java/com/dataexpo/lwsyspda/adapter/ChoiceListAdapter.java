@@ -64,8 +64,8 @@ public class ChoiceListAdapter extends RecyclerView.Adapter<ChoiceListHolder> im
         holder.itemView.setTag(position);
         // 添加数据
         holder.tv_bom_name.setText(mList.get(position).getName());
-        holder.tv_bom_reg_time.setText(Utils.formatDatetoString(mList.get(position).getRegTime()));
-        holder.tv_bom_reg_user.setText(mList.get(position).getRegName());
+        holder.tv_bom_reg_time.setText("下单时间：" + Utils.formatDatetoString(mList.get(position).getRegTime()));
+        holder.tv_bom_reg_user.setText("下单人：" + mList.get(position).getRegName());
 
         holder.root.setOnClickListener(new View.OnClickListener() {
             @Override

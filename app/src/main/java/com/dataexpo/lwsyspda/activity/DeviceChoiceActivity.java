@@ -87,6 +87,7 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData {
         }
         initView();
         initData();
+        getBomSerial();
         soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 5);
         soundMap.put(1, soundPool.load(mContext, R.raw.rescan, 1)); //播放的声音文件
     }
@@ -205,6 +206,39 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData {
                     request.status = 2;
                 }
                 Log.i(TAG, "onFailure " + t.toString());
+            }
+        });
+    }
+
+    private void getBomSerial() {
+        BomService bomService = mRetrofit.create(BomService.class);
+
+        //查询项目单
+        Call<NetResult<List<BomHouseInfo>>> call = bomService.getBomSeries(bom.getId());
+
+        call.enqueue(new Callback<NetResult<List<BomHouseInfo>>>() {
+            @Override
+            public void onResponse(Call<NetResult<List<BomHouseInfo>>> call, Response<NetResult<List<BomHouseInfo>>> response) {
+                NetResult<List<BomHouseInfo>> result = response.body();
+                if (result == null) {
+                    return;
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (result.getErrcode() == -1) {
+                            //MToast.show(R.string.);
+                        } else {
+                            bomHouseInfos = result.getData();
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Call<NetResult<List<BomHouseInfo>>> call, Throwable t) {
+
             }
         });
     }

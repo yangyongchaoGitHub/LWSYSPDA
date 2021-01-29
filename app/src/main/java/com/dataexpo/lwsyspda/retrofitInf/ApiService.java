@@ -1,5 +1,6 @@
 package com.dataexpo.lwsyspda.retrofitInf;
 
+import com.dataexpo.lwsyspda.entity.CallContext;
 import com.dataexpo.lwsyspda.entity.Login;
 import com.dataexpo.lwsyspda.entity.LoginResult;
 import com.dataexpo.lwsyspda.entity.NetResult;
@@ -15,7 +16,7 @@ import static com.dataexpo.lwsyspda.retrofitInf.URLs.*;
 public interface ApiService {
 
     @POST(loginUrl) //网络请求路径
-    Call<NetResult> login(@Body Login login);
+    Call<NetResult<CallContext>> login(@Body Login login);
 
 
 }

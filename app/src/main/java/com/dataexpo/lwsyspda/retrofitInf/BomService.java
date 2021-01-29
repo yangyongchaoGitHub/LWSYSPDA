@@ -17,7 +17,7 @@ public interface BomService {
     @GET(bomListUrl)
     Call<NetResult<List<Bom>>> getBomList(@Query("pageNo") int pageNo, @Query("pageSize") int pageSize,
                                           @Query("keyWord") String keyWord, @Query("type") Integer type,
-                                          @Query("status") Integer status);
+                                          @Query("status") Integer status, @Query("loginId") Integer loginId);
 
     @GET(bomSeriesUrl)
     Call<NetResult<List<BomHouseInfo>>> getBomSeries(@Query("bomId") int bomId);

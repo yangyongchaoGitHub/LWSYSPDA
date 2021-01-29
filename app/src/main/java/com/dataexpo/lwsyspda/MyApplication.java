@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.util.Log;
 
+import com.dataexpo.lwsyspda.entity.CallContext;
 import com.dataexpo.lwsyspda.retrofitInf.URLs;
 import com.dataexpo.lwsyspda.rfid.MConstant;
 import com.dataexpo.lwsyspda.rfid.MUtil;
@@ -29,6 +30,8 @@ public class MyApplication extends Application {
     public static boolean poweronStatus; //上电状态
     public static boolean selectShowData; //false为EPC，true为TID
     public static String currentDeviceName = "";
+
+    CallContext callContext = null;
 
     @Override
     public void onCreate() {
@@ -72,4 +75,11 @@ public class MyApplication extends Application {
                 .build();
     }
 
+    public CallContext getCallContext() {
+        return callContext;
+    }
+
+    public void setCallContext(CallContext callContext) {
+        this.callContext = callContext;
+    }
 }

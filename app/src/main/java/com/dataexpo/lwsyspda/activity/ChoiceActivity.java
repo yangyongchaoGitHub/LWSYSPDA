@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -39,10 +40,13 @@ import retrofit2.Retrofit;
 /**
  * 备货单
  */
-public class ChoiceActivity extends BascActivity implements OnItemClickListener {
+public class ChoiceActivity extends BascActivity implements OnItemClickListener, View.OnClickListener {
     private static final String TAG = SelectActivity.class.getSimpleName();
     private Context mContext;
 
+    private TextView tv_0;
+    private TextView tv_1;
+    private TextView tv_2;
     private RecyclerView r_centerView;
     private ChoiceListAdapter adapter;
     private List<Bom> dataList = new ArrayList<>();
@@ -50,6 +54,8 @@ public class ChoiceActivity extends BascActivity implements OnItemClickListener 
     Retrofit mRetrofit;
 
     private int type = 0;
+
+    String currCall = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,15 +72,35 @@ public class ChoiceActivity extends BascActivity implements OnItemClickListener 
         r_centerView.setAdapter(adapter);
 
         adapter.setItemClickListener(this);
+        getBomList(null);
+    }
+
+    private void getBomList(Integer loginId) {
+        tv_0.setBackgroundResource(R.drawable.edittext_rect_gray);
+        tv_1.setBackgroundResource(R.drawable.edittext_rect_gray);
+        tv_2.setBackgroundResource(R.drawable.edittext_rect_gray);
+        if (type == 0) {
+            tv_0.setBackgroundResource(R.drawable.edittext_rect_white);
+        } else if (type == 1) {
+            tv_1.setBackgroundResource(R.drawable.edittext_rect_white);
+        } else {
+            tv_2.setBackgroundResource(R.drawable.edittext_rect_white);
+        }
 
         BomService bomService = mRetrofit.create(BomService.class);
 
         //查询项目单
-        Call<NetResult<List<Bom>>> call = bomService.getBomList(1, 10, null, type, null);
+        Call<NetResult<List<Bom>>> call = bomService.getBomList(1, 10, null, type, null, loginId);
+
+        currCall = call.hashCode() + "";
 
         call.enqueue(new Callback<NetResult<List<Bom>>>() {
             @Override
             public void onResponse(Call<NetResult<List<Bom>>> call, Response<NetResult<List<Bom>>> response) {
+                //已经不是当前的请求
+                if (!currCall.equals(call.hashCode() + "")) {
+                    return;
+                }
 
                 NetResult<List<Bom>> result = response.body();
                 if (result == null) {
@@ -96,6 +122,10 @@ public class ChoiceActivity extends BascActivity implements OnItemClickListener 
 
             @Override
             public void onFailure(Call<NetResult<List<Bom>>> call, Throwable t) {
+                //已经不是当前的请求
+                if (!currCall.equals(call.hashCode() + "")) {
+                    return;
+                }
                 Log.i(TAG, "onFailure" + t.toString());
             }
         });
@@ -105,6 +135,13 @@ public class ChoiceActivity extends BascActivity implements OnItemClickListener 
         r_centerView = findViewById(R.id.recycler_center);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         r_centerView.setLayoutManager(layoutManager);
+        tv_0 = findViewById(R.id.tv_0);
+        tv_1 = findViewById(R.id.tv_1);
+        tv_2 = findViewById(R.id.tv_2);
+
+        tv_0.setOnClickListener(this);
+        tv_1.setOnClickListener(this);
+        tv_2.setOnClickListener(this);
     }
 
     @Override
@@ -125,6 +162,25 @@ public class ChoiceActivity extends BascActivity implements OnItemClickListener 
             bundle.putInt("bomId", dataList.get(position).getId());
             intent.putExtras(bundle);
             startActivity(intent);
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.tv_0:
+                type = 0;
+                getBomList(null);
+                break;
+            case R.id.tv_1:
+                type = 1;
+                //getBomList();
+                break;
+            case R.id.tv_2:
+//                type = 2;
+                getBomList(MyApplication.getMyApp().getCallContext().getLoginId());
+                break;
+            default:
         }
     }
 }

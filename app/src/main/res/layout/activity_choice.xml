@@ -2,7 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_height="match_parent"
     android:layout_width="match_parent"
-    android:background="@color/bg_white"
+    android:background="@color/bg_gray"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -18,6 +18,7 @@
             android:layout_height="0dp"
             android:text="@string/unexpired"
             android:gravity="center"
+            android:background="@drawable/edittext_rect_white"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -38,7 +39,7 @@
             android:id="@+id/tv_2"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:text="@string/beoverdue"
+            android:text="@string/my"
             android:gravity="center"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"

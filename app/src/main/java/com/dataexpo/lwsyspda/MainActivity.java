@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.dataexpo.lwsyspda.activity.BascActivity;
 import com.dataexpo.lwsyspda.activity.SelectActivity;
+import com.dataexpo.lwsyspda.entity.CallContext;
 import com.dataexpo.lwsyspda.entity.Login;
 import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.retrofitInf.ApiService;
@@ -101,32 +102,35 @@ public class MainActivity extends BascActivity implements View.OnClickListener {
             login.setNumber(et_login_name.getText().toString());
             login.setPhone(et_login_pswd.getText().toString());
 
-            Call<NetResult> call = httpList.login(login);
-            call.enqueue(new Callback<NetResult>() {
-                @Override
-                public void onResponse(Call<NetResult> call, Response<NetResult> response) {
+            Call<NetResult<CallContext>> call = httpList.login(login);
 
-                    NetResult result = response.body();
-                    Log.i(TAG, "onResponse" + result.getErrmsg() + " ! " + result.getErrcode());
-                    //if (result.getErrcode() != -1) {
+            call.enqueue(new Callback<NetResult<CallContext>>() {
+                @Override
+                public void onResponse(Call<NetResult<CallContext>> call, Response<NetResult<CallContext>> response) {
+
+                    NetResult<CallContext> result = response.body();
+                    Log.i(TAG, "onResponse" + result.getErrmsg() + " ! " + result.getErrcode() + " " +
+                            result.getData().getLoginName() + " " + result.getData().getLoginId());
+                    if (result.getErrcode() != -1) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                loginSuccess();
+                                loginSuccess(result.getData());
                             }
                         });
-                    //}
+                    }
                 }
 
                 @Override
-                public void onFailure(Call<NetResult> call, Throwable t) {
+                public void onFailure(Call<NetResult<CallContext>> call, Throwable t) {
                     Log.i(TAG, "onFailure" + t.toString());
                 }
             });
         }
     }
 
-    private void loginSuccess() {
+    private void loginSuccess(CallContext data) {
+        MyApplication.getMyApp().setCallContext(data);
         startActivity(new Intent(mContext, SelectActivity.class));
     }
 
