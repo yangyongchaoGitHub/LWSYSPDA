@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
     android:background="@color/bg_white"
@@ -9,41 +9,38 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/top"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/x60"
+        android:layout_height="@dimen/x100"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent">
-        <TextView
-            android:id="@+id/tv_0"
+
+        <EditText
+            android:id="@+id/et_input"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:text="@string/unexpired"
-            android:gravity="center"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent">
+
+        </EditText>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/edittext_rect_green"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintWidth_percent="0.33"/>
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_percent="0.1"
+            app:layout_constraintHeight_percent="0.1"/>
 
         <TextView
-            android:id="@+id/tv_1"
+            android:id="@+id/tv_rfid_status"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:text="@string/beoverdue"
-            android:gravity="center"
+            android:background="@drawable/edittext_rect_red"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toRightOf="@+id/tv_0"
-            app:layout_constraintWidth_percent="0.33"/>
+            app:layout_constraintWidth_percent="0.1"
+            app:layout_constraintHeight_percent="0.1"/>
 
-        <TextView
-            android:id="@+id/tv_2"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:text="@string/beoverdue"
-            android:gravity="center"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toRightOf="@+id/tv_1"
-            app:layout_constraintWidth_percent="0.33"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.recyclerview.widget.RecyclerView

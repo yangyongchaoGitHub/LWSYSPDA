@@ -28,6 +28,7 @@ public interface BomService {
     @GET(bomFindDeviceInfoUrl)
     Call<NetResult<Device>> queryDeviceInfo(@Query("code") String code);
 
+    @Deprecated
     @GET(bomFindDeviceInfoByRfidUrl)
     Call<NetResult<Device>> queryDeviceInfoByRfid(@Query("rfid") String rfid);
 }

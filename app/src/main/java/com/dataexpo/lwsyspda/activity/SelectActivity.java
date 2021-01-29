@@ -37,28 +37,19 @@ public class SelectActivity extends BascActivity implements View.OnClickListener
 
     @Override
     public void onClick(View v) {
-        Intent intent =new Intent(mContext, ChoiceActivity.class);
-        int type = -1;
-        Bundle bundle= new Bundle();
-
         switch (v.getId()) {
             case R.id.tv_model_choice:
-                type = 0;
+                startActivity(new Intent(mContext, ChoiceActivity.class));
                 break;
 
             case R.id.tv_model_inbound:
-                type = 1;
+                startActivity(new Intent(mContext, InboundChoiceActivity.class));
                 break;
 
             case R.id.tv_model_call_repairs:
-                type = 2;
                 break;
 
             default:
-        }
-        if (type != -1) {
-            intent.putExtras(bundle);
-            startActivity(intent);
         }
     }
 }

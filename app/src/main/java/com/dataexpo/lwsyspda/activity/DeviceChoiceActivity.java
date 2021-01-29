@@ -18,12 +18,15 @@ import com.dataexpo.lwsyspda.MyApplication;
 import com.dataexpo.lwsyspda.R;
 import com.dataexpo.lwsyspda.adapter.DeviceChoiceAdapter;
 import com.dataexpo.lwsyspda.common.Utils;
+import com.dataexpo.lwsyspda.entity.Bom;
 import com.dataexpo.lwsyspda.entity.BomHouseInfo;
 import com.dataexpo.lwsyspda.entity.Device;
 import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
-import com.dataexpo.lwsyspda.rfid.GetRFIDThread;
-import com.dataexpo.lwsyspda.rfid.listener.BackResult;
+import com.dataexpo.lwsyspda.rfid.EpcData;
+import com.dataexpo.lwsyspda.rfid.EpcUtil;
+import com.dataexpo.lwsyspda.rfid.MToast;
+import com.dataexpo.lwsyspda.rfid.ReadThread;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,7 +39,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class DeviceChoiceActivity extends BascActivity implements BackResult {
+public class DeviceChoiceActivity extends BascActivity implements EpcData {
     private static final String TAG = DeviceChoiceActivity.class.getSimpleName();
     private Context mContext;
 
@@ -49,13 +52,16 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
 
     private List<BomHouseInfo> bomHouseInfos = new ArrayList<>();
     private List<Device> devices = new ArrayList<>();
+    private Map<String, String> calls = new HashMap<>();
 
     //保存rfid卡号和信号强度
     private Map<String, RfidRequest> rfidLocal = new HashMap<>();
 
-    private int bomId;
+    private Bom bom;
     //扫描的二维码的内容
     private String barCode;
+
+    private EpcUtil mUtil = EpcUtil.getInstance();
 
     //声音池
     private SoundPool soundPool;
@@ -77,7 +83,7 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
         mRetrofit = MyApplication.getmRetrofit();
         Bundle bundle = this.getIntent().getExtras();
         if (bundle != null) {
-            bomId = bundle.getInt("bomId");
+            bom = (Bom) bundle.getSerializable("bom");
         }
         initView();
         initData();
@@ -88,12 +94,11 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
     private void initData() {
         BomService bomService = mRetrofit.create(BomService.class);
 
-        Call<NetResult<List<Device>>> call = bomService.getBomDevice(bomId);
+        Call<NetResult<List<Device>>> call = bomService.getBomDevice(bom.getId());
 
         call.enqueue(new Callback<NetResult<List<Device>>>() {
             @Override
             public void onResponse(Call<NetResult<List<Device>>> call, Response<NetResult<List<Device>>> response) {
-
                 NetResult<List<Device>> result = response.body();
                 if (result == null) {
                     return;
@@ -155,21 +160,23 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
     private void queryDeviceInfoByRfid(String rfid) {
         BomService bomService = mRetrofit.create(BomService.class);
         Log.i(TAG, "queryDeviceInfoByRfid " + rfid);
-        Call<NetResult<Device>> call = bomService.queryDeviceInfoByRfid(rfid);
+
+        Call<NetResult<Device>> call = bomService.queryDeviceInfo(rfid);
+
+        Log.i(TAG, " call: " + call.hashCode());
+        calls.put(call.hashCode() + "", rfid);
 
         call.enqueue(new Callback<NetResult<Device>>() {
             @Override
             public void onResponse(Call<NetResult<Device>> call, Response<NetResult<Device>> response) {
-
-                String rfidStr = String.valueOf(call.request().body());
-                RfidRequest request = rfidLocal.get(rfidStr);
+                RfidRequest request = rfidLocal.get(calls.get(call.hashCode() + ""));
 
                 NetResult<Device> result = response.body();
                 if (result == null) {
                     return;
                 }
 
-                Log.i(TAG, "device name: " + result.getData() + " " + result.getErrcode());
+                Log.i(TAG, "device name: " + result.getData() + " " + result.getErrcode() + " " + request);
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -180,7 +187,7 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
                                 request.status = 4;
                             }
                         } else {
-                            Log.i(TAG, "device name: " + result.getData().getName());
+                            Log.i(TAG, "device name: " + result.getData().getName() + " id " + result.getData().getId());
                             addShowDevice(result.getData(), false);
                             if (request != null) {
                                 request.status = 3;
@@ -192,13 +199,12 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
 
             @Override
             public void onFailure(Call<NetResult<Device>> call, Throwable t) {
-                String rfidStr = String.valueOf(call.request().body());
                 //将失败的状态设置为2
-                RfidRequest request = rfidLocal.get(rfidStr);
+                RfidRequest request = rfidLocal.get(calls.get(call.hashCode() + ""));
                 if (request != null) {
                     request.status = 2;
                 }
-                Log.i(TAG, "onFailure" + t.toString());
+                Log.i(TAG, "onFailure " + t.toString());
             }
         });
     }
@@ -260,10 +266,49 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
     @Override
     protected void onResume() {
         super.onResume();
-        GetRFIDThread.getInstance().setBackResult(this);
-        tv_rfid_status.setBackgroundResource(!GetRFIDThread.getInstance().isIfPostMsg() ? R.drawable.edittext_rect_red : R.drawable.edittext_rect_green);
-//        //设置读卡模式
-//        GetRFIDThread.getInstance().setSearchTag(true);
+        Log.i(TAG, "onResume");
+        mUtil.setEpcData(this);
+    }
+
+    @Override
+    public void getEpcData(String[] tagData) {
+        if (tagData != null) {
+            // 卡号
+            String epc = tagData[0];
+            String rssiStr = tagData[2];
+
+            RfidRequest request = rfidLocal.get(epc);
+
+            //扫描到的设备不在已有列表中
+            if (request == null) {
+                request = new RfidRequest();
+                request.rfid = epc;
+                request.rssi = rssiStr;
+                rfidLocal.put(epc, request);
+
+            } else {
+                //设备已经扫描到过
+                if (!rssiStr.equals(request.rssi)) {
+                    //信号强度有变动， 找设备，然后修改，再设置
+                    Iterator<Device> iterator = devices.iterator();
+                    boolean bEexist = false;
+                    while (iterator.hasNext()) {
+                        Device d = iterator.next();
+                        if (epc.equals(d.getRfid())) {
+                            //设备已存在
+                            d.setRfid(rssiStr);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            //未请求和请求失败的，需要进行请求
+            if (request.status == 0 || request.status == 2) {
+                request.status = 1;
+                queryDeviceInfoByRfid(request.rfid);
+            }
+        }
     }
 
     //  扫码相关-------------------------------------------------------------------------------------------
@@ -273,7 +318,10 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
         if (600 == keyCode || 601 == keyCode || 602 == keyCode) {
             et_input.requestFocus();
         }
-        if (keyCode == KeyEvent.KEYCODE_F8) { //把枪按钮被按下,默认值为138
+        if (keyCode == KeyEvent.KEYCODE_BUTTON_2 ||
+                keyCode == KeyEvent.KEYCODE_BUTTON_3 ||
+                keyCode == KeyEvent.KEYCODE_F8 ||
+                keyCode == KeyEvent.KEYCODE_F4) { //把枪按钮被按下,默认值为138
             startOrStopRFID();
         }
         return super.onKeyDown(keyCode, event);
@@ -312,68 +360,21 @@ public class DeviceChoiceActivity extends BascActivity implements BackResult {
         queryDeviceInfo();
     }
 
-    @Override
-    public void postResult(String[] tagData) {
-        if (tagData != null) {
-            for (String t : tagData) {
-                Log.i(TAG, "--- tagData " + t);
-            }
-            // 卡号
-            String epc = tagData[1];
-            String rssiStr = tagData[2];
-
-            RfidRequest request = rfidLocal.get(epc);
-
-            //扫描到的设备不在已有列表中
-            if (request != null) {
-                RfidRequest add = new RfidRequest();
-                add.rfid = epc;
-                add.rssi = rssiStr;
-                rfidLocal.put(epc, add);
-
-            } else {
-                //设备已经扫描到过
-                if (!rssiStr.equals(request.rssi)) {
-                    //信号强度有变动， 找设备，然后修改，再设置
-                    Iterator<Device> iterator = devices.iterator();
-                    boolean bEexist = false;
-                    while (iterator.hasNext()) {
-                        Device d = iterator.next();
-                        if (epc.equals(d.getRfid())) {
-                            //设备已存在
-                            d.setRfid(rssiStr);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            //未请求和请求失败的，需要进行请求
-            if (request.status == 0 || request.status == 2) {
-                request.status = 1;
-                queryDeviceInfoByRfid(request.rfid);
-            }
-        }
-    }
-
-    @Override
-    public void postInventoryRate(long rate) {
-        Log.i(TAG, "rate " + rate);
-    }
-
     // 读卡相关-------------------------------------------------------------
     //开启或停止RFID模块
     public void startOrStopRFID() {
-        boolean flag = !GetRFIDThread.getInstance().isIfPostMsg();
-        if (flag) {
-            MyApplication.getMyApp().getIdataLib().startInventoryTag();
-            long tmepTime = pauseTime;
-            startTime = System.currentTimeMillis() - tmepTime;
-        } else {
-            MyApplication.getMyApp().getIdataLib().stopInventory();
-        }
-        GetRFIDThread.getInstance().setIfPostMsg(flag);
+        long tmepTime = pauseTime;
+        startTime = System.currentTimeMillis() - tmepTime;
+        Log.i(TAG, "startOrStopRFID ");
 
-        tv_rfid_status.setBackgroundResource(flag ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+        boolean flag = ReadThread.getInstance().isIfInventory();
+        if (flag) {
+            tv_rfid_status.setBackgroundResource(!mUtil.invenrotyStop() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+            for (Map.Entry<String, RfidRequest> entry: rfidLocal.entrySet()) {
+                Log.i(TAG, "key" + entry.getKey() + " rssi:" + entry.getValue().rssi + " status:" + entry.getValue().status);
+            }
+        } else {
+            tv_rfid_status.setBackgroundResource(mUtil.inventoryStart() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+        }
     }
 }

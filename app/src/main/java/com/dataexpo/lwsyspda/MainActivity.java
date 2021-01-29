@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -15,35 +16,31 @@ import android.widget.Toast;
 import com.dataexpo.lwsyspda.activity.BascActivity;
 import com.dataexpo.lwsyspda.activity.SelectActivity;
 import com.dataexpo.lwsyspda.entity.Login;
-import com.dataexpo.lwsyspda.entity.LoginResult;
 import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.retrofitInf.ApiService;
-import com.dataexpo.lwsyspda.retrofitInf.URLs;
-import com.dataexpo.lwsyspda.rfid.GetRFIDThread;
+import com.dataexpo.lwsyspda.rfid.EmshConstant;
+import com.dataexpo.lwsyspda.rfid.EpcUtil;
+import com.dataexpo.lwsyspda.rfid.MToast;
 import com.dataexpo.lwsyspda.rfid.MUtil;
-import com.dataexpo.lwsyspda.rfid.listener.BackResult;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.dataexpo.lwsyspda.rfid.MyLib;
+import com.dataexpo.lwsyspda.rfid.ReadThread;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Executors;
 
-import realid.rfidlib.EmshConstant;
 import retrofit2.Call;
-import retrofit2.CallAdapter;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
-import static realid.rfidlib.EmshConstant.EmshBatteryPowerMode.EMSH_PWR_MODE_BATTERY_ERROR;
-import static realid.rfidlib.EmshConstant.EmshBatteryPowerMode.EMSH_PWR_MODE_CHG_FULL;
-import static realid.rfidlib.EmshConstant.EmshBatteryPowerMode.EMSH_PWR_MODE_CHG_GENERAL;
-import static realid.rfidlib.EmshConstant.EmshBatteryPowerMode.EMSH_PWR_MODE_CHG_QUICK;
-import static realid.rfidlib.EmshConstant.EmshBatteryPowerMode.EMSH_PWR_MODE_DSG_UHF;
-import static realid.rfidlib.EmshConstant.EmshBatteryPowerMode.EMSH_PWR_MODE_STANDBY;
+import static com.dataexpo.lwsyspda.rfid.EmshConstant.EmshBatteryPowerMode.EMSH_PWR_MODE_DSG_UHF;
+import static com.dataexpo.lwsyspda.rfid.EmshConstant.EmshBatteryPowerMode.EMSH_PWR_MODE_STANDBY;
+import static com.dataexpo.lwsyspda.rfid.MyLib.A5P_ComBaseLin_Device;
+import static com.dataexpo.lwsyspda.rfid.MyLib.A5P_Device;
+import static com.dataexpo.lwsyspda.rfid.MyLib.A5_Device;
 
-public class MainActivity extends BascActivity implements View.OnClickListener, BackResult {
+
+public class MainActivity extends BascActivity implements View.OnClickListener {
     private static final String TAG = MainActivity.class.getSimpleName();
     private Context mContext;
 
@@ -53,8 +50,6 @@ public class MainActivity extends BascActivity implements View.OnClickListener, 
 
     Retrofit mRetrofit;
 
-    private GetRFIDThread rfidThread = GetRFIDThread.getInstance();//RFID标签信息获取线程
-    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,15 +59,22 @@ public class MainActivity extends BascActivity implements View.OnClickListener, 
         if (mRetrofit == null) {
             MyApplication.createRetrofit();
         }
-        MyApplication.getMyApp().getIdataLib().changeConfig(true); //初始化开启把枪和串口配置
-        Log.e("poweron = ", MyApplication.getMyApp().getIdataLib().powerOn() + " ");
-        rfidThread.start();
-        monitorEmsh();
+        ReadThread.getInstance().start();
         initView();
         initData();
     }
 
     private void initData() {
+        MUtil.getInstance().changCode(true);
+        ifPoweron = MyApplication.poweronStatus;
+        if (!MyApplication.poweronStatus) {//上电失败，弹出弹框
+            /* warningDialog()*/
+            MUtil.getInstance().warningDialog(this);
+        }
+        if (MyApplication.currentDeviceName.equals(A5_Device) || MyApplication.currentDeviceName.equals(A5P_Device)
+                || MyApplication.currentDeviceName.equals(A5P_ComBaseLin_Device)) {
+            monitorEmsh();
+        }
     }
 
     private void initView() {
@@ -80,8 +82,6 @@ public class MainActivity extends BascActivity implements View.OnClickListener, 
         et_login_pswd = findViewById(R.id.et_login_pswd);
         tv_login = findViewById(R.id.tv_login);
         tv_login.setOnClickListener(this);
-
-        GetRFIDThread.getInstance().setBackResult(this);
     }
 
     @Override
@@ -139,77 +139,63 @@ public class MainActivity extends BascActivity implements View.OnClickListener, 
         return true;
     }
 
-    @Override
-    protected void onDestroy() {
-        Log.i(TAG, "onDestroy");
+    // 资源回收----------------------------------------------------------------------------
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        exit();
+//    }
 
-        MyApplication.getMyApp().getIdataLib().stopInventory();
-//        if (mEmshStatusReceiver != null) {
-//            unregisterReceiver(mEmshStatusReceiver);
-//            mEmshStatusReceiver = null;
-//        }
-//        if (mTimer != null || mTimerTask != null) {
-//            mTimerTask.cancel();
-//            mTimer.cancel();
-//            mTimerTask = null;
-//            mTimer = null;
-//        }
-        rfidThread.destoryThread();
-        Log.e("powoff = ", MyApplication.getMyApp().getIdataLib().powerOff() + "");
-        MyApplication.getMyApp().getIdataLib().changeConfig(false);
-        super.onDestroy();
-    }
-
-    private EmshStatusBroadcastReceiver mEmshStatusReceiver;
+    private long lastTime = 0;
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.i(TAG, "onKeyDown: " + keyCode);
-
-        if (keyCode == KeyEvent.KEYCODE_F8) { //把枪按钮被按下,默认值为138
-            startOrStopRFID();
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
-    public void startOrStopRFID() {
-
-        boolean flag = !GetRFIDThread.getInstance().isIfPostMsg();
-        if (flag) {
-            MyApplication.getMyApp().getIdataLib().startInventoryTag();
+    public void onBackPressed() {
+        long currentTime = SystemClock.currentThreadTimeMillis();
+        if (lastTime != 0 && currentTime - lastTime < 500) {
+            exit();
         } else {
-            MyApplication.getMyApp().getIdataLib().stopInventory();
+            MToast.show(R.string.double_click_exit_app);
         }
-        GetRFIDThread.getInstance().setIfPostMsg(flag);
-
-        //tv_rfid_status.setBackgroundResource(flag ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+        lastTime = currentTime;
+    }
+    /**
+     * 回收资源，退出应用
+     */
+    public void exit() {
+        MUtil.getInstance().changCode(false);
+        MUtil.getInstance().rcyleDialog();
+        unRegister();
+        cancelTimer();
+        EpcUtil.getInstance().exit();
     }
 
-    @Override
-    public void postResult(String[] tagData) {
-        if (tagData != null) {
-            for (String t : tagData) {
-                Log.i(TAG, "--- tagData " + t);
-            }
-            String epc = tagData[1];
-            String rssiStr = tagData[2];
+    private void unRegister() {
+        if (mEmshStatusReceiver != null) {
+            unregisterReceiver(mEmshStatusReceiver);
+            mEmshStatusReceiver = null;
         }
     }
 
-    @Override
-    public void postInventoryRate(long rate) {
-        Log.i(TAG, "rate " + rate);
+    private void cancelTimer() {
+        if (mTimer != null || mTimerTask != null) {
+            mTimerTask.cancel();
+            mTimer.cancel();
+            mTimerTask = null;
+            mTimer = null;
+        }
     }
 
+    //广播监听资源
+    private EmshStatusBroadcastReceiver mEmshStatusReceiver;
     private Timer mTimer = null;
     private TimerTask mTimerTask = null;
 
-    //定时监听把枪状态
+    //注册EMSH广播，监听当前UHF模块的上电连接状态
     private void monitorEmsh() {
+        Log.e(TAG,"come to emsh ");
         mEmshStatusReceiver = new EmshStatusBroadcastReceiver();
         IntentFilter intentFilter = new IntentFilter(EmshConstant.Action.INTENT_EMSH_BROADCAST);
         registerReceiver(mEmshStatusReceiver, intentFilter);
-
         mTimer = new Timer();
         mTimerTask = new TimerTask() {
             @Override
@@ -222,10 +208,12 @@ public class MainActivity extends BascActivity implements View.OnClickListener, 
         mTimer.schedule(mTimerTask, 0, 1000);
     }
 
-    private int oldStatue = -1;
+
+    private int currentStatue = -1;
+
+    private boolean ifPoweron = false;
 
     public class EmshStatusBroadcastReceiver extends BroadcastReceiver {
-
         @Override
         public void onReceive(Context context, Intent intent) {
 
@@ -233,39 +221,41 @@ public class MainActivity extends BascActivity implements View.OnClickListener, 
 
                 int sessionStatus = intent.getIntExtra("SessionStatus", 0);
                 int batteryPowerMode = intent.getIntExtra("BatteryPowerMode", -1);
-                //  MLog.e("sessionStatus = " + sessionStatus + "  batteryPowerMode  = " + batteryPowerMode);
                 if ((sessionStatus & EmshConstant.EmshSessionStatus.EMSH_STATUS_POWER_STATUS) != 0) {
                     // 把枪电池当前状态
-                    if (batteryPowerMode == oldStatue) { //相同状态不处理
-                        MUtil.cancelWaringDialog();
+                    if (batteryPowerMode == currentStatue) { //相同状态不处理
+                        //    MLog.e("....SAME STATUS  batteryPowerMode =  "+batteryPowerMode);
+                        MUtil.getInstance().hideDialog();
+                        if (!ifPoweron) {
+                            ifPoweron = MyLib.getInstance().powerOn();
+                            if (ifPoweron) {
+                                MToast.show(R.string.poweron_success);
+                            }
+                        }
                         return;
                     }
-                    oldStatue = batteryPowerMode;
+                    currentStatue = batteryPowerMode;
                     switch (batteryPowerMode) {
                         case EMSH_PWR_MODE_STANDBY:
-                            Log.e(TAG, "standby status");
-                            MyApplication.getMyApp().getIdataLib().powerOn();
+                            Log.e(TAG,"....STANDBY ");
+                            ifPoweron = MyLib.getInstance().powerOn();
                             break;
                         case EMSH_PWR_MODE_DSG_UHF:
-                            Log.e(TAG, "DSG_UHF status");
-                            MUtil.show("R.string.poweron_success");
-                            break;
-                        case EMSH_PWR_MODE_CHG_GENERAL:
-                        case EMSH_PWR_MODE_CHG_QUICK:
-                            Log.e(TAG, "charging status");
-                            MUtil.show("R.string.charing");
-                            break;
-                        case EMSH_PWR_MODE_CHG_FULL:
-                            Log.e(TAG, "charging full status");
-                            MUtil.show("R.string.charing_full");
+                            Log.e(TAG,"....DSG_UHF ");
+                            if (!ifPoweron) {
+                                ifPoweron = MyLib.getInstance().powerOn();
+                                Log.e(TAG,"....重新上电 powenon = " + ifPoweron);
+                            } else {
+                                MToast.show(R.string.poweron_success);
+                            }
                             break;
                     }
                 } else {
-                    oldStatue = EMSH_PWR_MODE_BATTERY_ERROR;
-                    Log.e(TAG, "unknown status");
-                    MUtil.warningDialog(MainActivity.this);
+                    Log.e(TAG,"....ERROR STATUS ");
+                    MUtil.getInstance().warningDialog(MainActivity.this);
                 }
             }
         }
     }
+
 }

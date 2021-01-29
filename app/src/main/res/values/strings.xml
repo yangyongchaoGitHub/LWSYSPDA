@@ -21,4 +21,10 @@
                             3.如还有问题，请截取EMSH设置-〉EMSH状态的截图，发送给相关技术支持
     </string>
     <string name="poweon_failed">电源无法开启</string>
+    <string name="unexpired">weiguoqi</string>
+    <string name="beoverdue">yiguoqi</string>
+    <string name="poweron_success">上电成功</string>
+    <string name="double_click_exit_app">连续点击返回退出应用</string>
+    <string name="open_quick_inventory_failed">开启快速盘点失败</string>
+
 </resources>

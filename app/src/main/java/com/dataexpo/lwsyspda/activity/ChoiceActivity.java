@@ -49,7 +49,7 @@ public class ChoiceActivity extends BascActivity implements OnItemClickListener 
 
     Retrofit mRetrofit;
 
-    private int type = -1;
+    private int type = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,13 +57,8 @@ public class ChoiceActivity extends BascActivity implements OnItemClickListener 
         setContentView(R.layout.activity_choice);
         mContext = this;
         mRetrofit = MyApplication.getmRetrofit();
-        Bundle bundle = this.getIntent().getExtras();
-        if (bundle != null) {
-            type = bundle.getInt("type");
-        }
         initView();
         initData();
-
     }
 
     private void initData() {
@@ -126,6 +121,7 @@ public class ChoiceActivity extends BascActivity implements OnItemClickListener 
         if (intent != null) {
             Bundle bundle = new Bundle();
             //传递name参数为tinyphp
+            bundle.putSerializable("bom", dataList.get(position));
             bundle.putInt("bomId", dataList.get(position).getId());
             intent.putExtras(bundle);
             startActivity(intent);
