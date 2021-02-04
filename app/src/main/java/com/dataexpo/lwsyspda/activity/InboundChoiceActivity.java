@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -13,9 +14,12 @@ import com.dataexpo.lwsyspda.MyApplication;
 import com.dataexpo.lwsyspda.R;
 import com.dataexpo.lwsyspda.adapter.DeviceChoiceAdapter;
 import com.dataexpo.lwsyspda.entity.Device;
+import com.dataexpo.lwsyspda.rfid.EpcUtil;
+import com.dataexpo.lwsyspda.rfid.ReadThread;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Retrofit;
 
@@ -25,17 +29,14 @@ public class InboundChoiceActivity extends BascActivity  {
     Retrofit mRetrofit;
 
     private EditText et_input;
+    private TextView tv_rfid_status;
 
     private RecyclerView r_centerView;
     private DeviceChoiceAdapter adapter;
 
-    private List<Device> devices = new ArrayList<>();
+    private EpcUtil mUtil = EpcUtil.getInstance();
 
-    class RfidRequest {
-        String rfid;
-        String rssi;
-        int status = 0;  //0未发起请求， 1请求中， 2请求返回失败， 3请求返回成功, 4请求返回未找到设备
-    }
+    private List<Device> devices = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,15 +75,12 @@ public class InboundChoiceActivity extends BascActivity  {
 
     //开启或停止RFID模块
     public void startOrStopRFID() {
-//        boolean flag = !GetRFIDThread.getInstance().isIfPostMsg();
-//        if (flag) {
-//            MyApplication.getMyApp().getIdataLib().startInventoryTag();
-//
-//        } else {
-//            MyApplication.getMyApp().getIdataLib().stopInventory();
-//        }
-//        GetRFIDThread.getInstance().setIfPostMsg(flag);
-//
-//        tv_rfid_status.setBackgroundResource(flag ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+        boolean flag = ReadThread.getInstance().isIfInventory();
+        if (flag) {
+            tv_rfid_status.setBackgroundResource(!mUtil.invenrotyStop() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+
+        } else {
+            tv_rfid_status.setBackgroundResource(mUtil.inventoryStart() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+        }
     }
 }

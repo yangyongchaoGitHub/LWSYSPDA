@@ -22,6 +22,7 @@ import com.dataexpo.lwsyspda.entity.Bom;
 import com.dataexpo.lwsyspda.entity.BomHouseInfo;
 import com.dataexpo.lwsyspda.entity.Device;
 import com.dataexpo.lwsyspda.entity.NetResult;
+import com.dataexpo.lwsyspda.entity.RfidEntity;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
 import com.dataexpo.lwsyspda.rfid.EpcData;
 import com.dataexpo.lwsyspda.rfid.EpcUtil;
@@ -55,7 +56,7 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData {
     private Map<String, String> calls = new HashMap<>();
 
     //保存rfid卡号和信号强度
-    private Map<String, RfidRequest> rfidLocal = new HashMap<>();
+    private Map<String, RfidEntity> rfidLocal = new HashMap<>();
 
     private Bom bom;
     //扫描的二维码的内容
@@ -68,12 +69,6 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData {
     HashMap<Integer, Integer> soundMap = new HashMap<Integer, Integer>();
 
     private long startTime, usTim, pauseTime;
-
-    class RfidRequest {
-        String rfid;
-        String rssi;
-        int status = 0;  //0未发起请求， 1请求中， 2请求返回失败， 3请求返回成功, 4请求返回未找到设备
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -170,7 +165,7 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData {
         call.enqueue(new Callback<NetResult<Device>>() {
             @Override
             public void onResponse(Call<NetResult<Device>> call, Response<NetResult<Device>> response) {
-                RfidRequest request = rfidLocal.get(calls.get(call.hashCode() + ""));
+                RfidEntity request = rfidLocal.get(calls.get(call.hashCode() + ""));
 
                 NetResult<Device> result = response.body();
                 if (result == null) {
@@ -201,7 +196,7 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData {
             @Override
             public void onFailure(Call<NetResult<Device>> call, Throwable t) {
                 //将失败的状态设置为2
-                RfidRequest request = rfidLocal.get(calls.get(call.hashCode() + ""));
+                RfidEntity request = rfidLocal.get(calls.get(call.hashCode() + ""));
                 if (request != null) {
                     request.status = 2;
                 }
@@ -311,11 +306,11 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData {
             String epc = tagData[0];
             String rssiStr = tagData[2];
 
-            RfidRequest request = rfidLocal.get(epc);
+            RfidEntity request = rfidLocal.get(epc);
 
             //扫描到的设备不在已有列表中
             if (request == null) {
-                request = new RfidRequest();
+                request = new RfidEntity();
                 request.rfid = epc;
                 request.rssi = rssiStr;
                 rfidLocal.put(epc, request);
@@ -404,7 +399,9 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData {
         boolean flag = ReadThread.getInstance().isIfInventory();
         if (flag) {
             tv_rfid_status.setBackgroundResource(!mUtil.invenrotyStop() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
-            for (Map.Entry<String, RfidRequest> entry: rfidLocal.entrySet()) {
+
+            //打印日志用
+            for (Map.Entry<String, RfidEntity> entry: rfidLocal.entrySet()) {
                 Log.i(TAG, "key" + entry.getKey() + " rssi:" + entry.getValue().rssi + " status:" + entry.getValue().status);
             }
         } else {
