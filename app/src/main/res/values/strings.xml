@@ -27,5 +27,8 @@
     <string name="poweron_success">上电成功</string>
     <string name="double_click_exit_app">连续点击返回退出应用</string>
     <string name="open_quick_inventory_failed">开启快速盘点失败</string>
+    <string name="bomname">备货项目</string>
+    <string name="scan">扫码</string>
+    <string name="choicedevice">选择设备</string>
 
 </resources>

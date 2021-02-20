@@ -39,6 +39,7 @@ public class SelectActivity extends BascActivity implements View.OnClickListener
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.tv_model_choice:
+                //备货
                 startActivity(new Intent(mContext, ChoiceActivity.class));
                 break;
 

@@ -29,11 +29,21 @@ public class Device implements Serializable {
     private Date regDate;
 
     private Integer bomId;
+
     //rfid卡号
+    @JsonIgnore
     private String rfid;
 
     @JsonIgnore
     private String rssi;
+
+    @JsonIgnore
+    private boolean bAddWait = false;
+
+    //状态1 未入库  2入库
+    private Integer status;
+
+    private Integer deviceId;
 
     public Integer getId() {
         return id;
@@ -122,5 +132,29 @@ public class Device implements Serializable {
 
     public void setRssi(String rssi) {
         this.rssi = rssi;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public Integer getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(Integer deviceId) {
+        this.deviceId = deviceId;
+    }
+
+    public boolean isbAddWait() {
+        return bAddWait;
+    }
+
+    public void setbAddWait(boolean bAddWait) {
+        this.bAddWait = bAddWait;
     }
 }

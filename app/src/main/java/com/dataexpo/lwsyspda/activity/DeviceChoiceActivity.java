@@ -7,18 +7,23 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.chad.library.adapter.base.listener.OnItemClickListener;
 import com.dataexpo.lwsyspda.MyApplication;
 import com.dataexpo.lwsyspda.R;
 import com.dataexpo.lwsyspda.adapter.DeviceChoiceAdapter;
 import com.dataexpo.lwsyspda.common.Utils;
 import com.dataexpo.lwsyspda.entity.Bom;
+import com.dataexpo.lwsyspda.entity.BomDeviceVo;
 import com.dataexpo.lwsyspda.entity.BomHouseInfo;
 import com.dataexpo.lwsyspda.entity.Device;
 import com.dataexpo.lwsyspda.entity.NetResult;
@@ -26,7 +31,6 @@ import com.dataexpo.lwsyspda.entity.RfidEntity;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
 import com.dataexpo.lwsyspda.rfid.EpcData;
 import com.dataexpo.lwsyspda.rfid.EpcUtil;
-import com.dataexpo.lwsyspda.rfid.MToast;
 import com.dataexpo.lwsyspda.rfid.ReadThread;
 
 import java.util.ArrayList;
@@ -34,25 +38,31 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class DeviceChoiceActivity extends BascActivity implements EpcData {
+public class DeviceChoiceActivity extends BascActivity implements EpcData, OnItemClickListener, View.OnClickListener {
     private static final String TAG = DeviceChoiceActivity.class.getSimpleName();
     private Context mContext;
 
     private EditText et_input;
     private TextView tv_rfid_status;
+    private TextView tv_success;
+
     private RecyclerView r_centerView;
+
     private DeviceChoiceAdapter adapter;
 
     Retrofit mRetrofit;
 
     private List<BomHouseInfo> bomHouseInfos = new ArrayList<>();
     private List<Device> devices = new ArrayList<>();
+    private ArrayList<Device> exists = new ArrayList<>();
+    private Map<String, Device> wait_devicemap = new HashMap<>();
     private Map<String, String> calls = new HashMap<>();
 
     //保存rfid卡号和信号强度
@@ -79,42 +89,42 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData {
         Bundle bundle = this.getIntent().getExtras();
         if (bundle != null) {
             bom = (Bom) bundle.getSerializable("bom");
+            exists = (ArrayList<Device>) bundle.getSerializable("devices");
         }
         initView();
         initData();
-        getBomSerial();
         soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 5);
         soundMap.put(1, soundPool.load(mContext, R.raw.rescan, 1)); //播放的声音文件
     }
 
     private void initData() {
-        BomService bomService = mRetrofit.create(BomService.class);
-
-        Call<NetResult<List<Device>>> call = bomService.getBomDevice(bom.getId());
-
-        call.enqueue(new Callback<NetResult<List<Device>>>() {
-            @Override
-            public void onResponse(Call<NetResult<List<Device>>> call, Response<NetResult<List<Device>>> response) {
-                NetResult<List<Device>> result = response.body();
-                if (result == null) {
-                    return;
-                }
-                Log.i(TAG, "onResponse" + result.getErrmsg() + " ! " +
-                        result.getErrcode() + " " + result.getData().size());
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.addData(result.getData());
-                        adapter.notifyDataSetChanged();
-                    }
-                });
-            }
-
-            @Override
-            public void onFailure(Call<NetResult<List<Device>>> call, Throwable t) {
-                Log.i(TAG, "onFailure" + t.toString());
-            }
-        });
+//        BomService bomService = mRetrofit.create(BomService.class);
+//
+//        Call<NetResult<List<Device>>> call = bomService.getBomDevice(bom.getId());
+//
+//        call.enqueue(new Callback<NetResult<List<Device>>>() {
+//            @Override
+//            public void onResponse(Call<NetResult<List<Device>>> call, Response<NetResult<List<Device>>> response) {
+//                NetResult<List<Device>> result = response.body();
+//                if (result == null) {
+//                    return;
+//                }
+//                Log.i(TAG, "onResponse" + result.getErrmsg() + " ! " +
+//                        result.getErrcode() + " " + result.getData().size());
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        adapter.addData(result.getData());
+//                        adapter.notifyDataSetChanged();
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public void onFailure(Call<NetResult<List<Device>>> call, Throwable t) {
+//                Log.i(TAG, "onFailure" + t.toString());
+//            }
+//        });
     }
 
     private void queryDeviceInfo() {
@@ -223,7 +233,6 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData {
                     @Override
                     public void run() {
                         if (result.getErrcode() == -1) {
-                            //MToast.show(R.string.);
                         } else {
                             bomHouseInfos = result.getData();
                         }
@@ -269,8 +278,13 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData {
         r_centerView.setLayoutManager(layoutManager);
         adapter = new DeviceChoiceAdapter(R.layout.item_device_choice, devices);
         r_centerView.setAdapter(adapter);
+        adapter.setOnItemClickListener(this);
+
         et_input = findViewById(R.id.et_input);
         et_input.requestFocus();
+
+        tv_success = findViewById(R.id.tv_success);
+        tv_success.setOnClickListener(this);
     }
 
     private void playSound() {
@@ -307,6 +321,16 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData {
             String rssiStr = tagData[2];
 
             RfidEntity request = rfidLocal.get(epc);
+
+            //Log.i(TAG, "read card " + epc);
+
+            //设备已在选择列表中则不再显示
+            for (Device ex: exists) {
+                Log.i(TAG, " ex : " + ex.getCode());
+                if (ex.getCode().equals(epc)) {
+                    return;
+                }
+            }
 
             //扫描到的设备不在已有列表中
             if (request == null) {
@@ -407,5 +431,89 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData {
         } else {
             tv_rfid_status.setBackgroundResource(mUtil.inventoryStart() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
         }
+    }
+
+    @Override
+    public void onItemClick(@NonNull BaseQuickAdapter<?, ?> adapter, @NonNull View view, int position) {
+        Log.i(TAG, "onItemClick---- " + position);
+        Device device = devices.get(position);
+        if (device.isbAddWait()) {
+            device.setbAddWait(false);
+            wait_devicemap.remove(device.getCode());
+        } else {
+            wait_devicemap.put(device.getCode(), device);
+            device.setbAddWait(true);
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.tv_success:
+                addDeviceInBom();
+                break;
+            default:
+        }
+    }
+
+    private void addDeviceInBom() {
+        if (wait_devicemap.size() == 0) {
+            Toast.makeText(mContext, "未选择设备", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        BomService bomService = mRetrofit.create(BomService.class);
+        Log.i(TAG, "queryDeviceInfo " + wait_devicemap.size());
+        BomDeviceVo bomDeviceVo = new BomDeviceVo();
+        bomDeviceVo.setBomId(bom.getId());
+        bomDeviceVo.setLoginId(MyApplication.getMyApp().getCallContext().getLoginId());
+        Iterator<Map.Entry<String, Device>> iterator = wait_devicemap.entrySet().iterator();
+        List<Device> devices = new ArrayList<>();
+
+        while (iterator.hasNext()) {
+            devices.add(iterator.next().getValue());
+        }
+        bomDeviceVo.setDevices(devices);
+        Call<NetResult<String>> call = bomService.addDeviceInBom(bomDeviceVo);
+
+        call.enqueue(new Callback<NetResult<String>>() {
+            @Override
+            public void onResponse(Call<NetResult<String>> call, Response<NetResult<String>> response) {
+                NetResult<String> result = response.body();
+                if (result == null) {
+                    return;
+                }
+
+                Log.i(TAG, "device name: " + result.getData() + " " + result.getErrcode());
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (result.getErrcode() == -1) {
+                            Toast.makeText(mContext, "添加失败", Toast.LENGTH_SHORT).show();
+                        } else {
+
+                            //添加成功关闭界面
+                            DeviceChoiceActivity.this.finish();
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Call<NetResult<String>> call, Throwable t) {
+                Log.i(TAG, "onFailure" + t.toString());
+            }
+        });
+    }
+
+    @Override
+    protected void onPause() {
+        Log.i(TAG, "onPause ");
+        boolean flag = ReadThread.getInstance().isIfInventory();
+        //关闭rfid
+        if (flag) {
+            tv_rfid_status.setBackgroundResource(!mUtil.invenrotyStop() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+        }
+        super.onPause();
     }
 }
