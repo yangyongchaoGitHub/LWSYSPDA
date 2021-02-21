@@ -5,13 +5,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ExpandableListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dataexpo.lwsyspda.MyApplication;
 import com.dataexpo.lwsyspda.R;
+import com.dataexpo.lwsyspda.adapter.BaseExpandableListAdapter;
 import com.dataexpo.lwsyspda.adapter.DeviceChoiceAdapter;
 import com.dataexpo.lwsyspda.entity.Bom;
 import com.dataexpo.lwsyspda.entity.BomHouseInfo;
@@ -35,14 +38,18 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
     private TextView tv_bom_info;
     private TextView tv_choice_device;
 
-    private RecyclerView r_centerView;
-    private DeviceChoiceAdapter adapter;
+    private ExpandableListView r_centerView;
+    //private DeviceChoiceAdapter adapter;
+    BaseExpandableListAdapter expdAdapter;
 
     private Retrofit mRetrofit;
 
     private Bom bom;
 
     private ArrayList<Device> devices = new ArrayList<>();
+
+    private ArrayList<String> gData;
+    private ArrayList<ArrayList<String>> iData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +61,48 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         if (bundle != null) {
             bom = (Bom) bundle.getSerializable("bom");
         }
+
+
+        gData = new ArrayList<>();
+        iData = new ArrayList<>();
+        gData = new ArrayList<>();
+        gData.add("我的家人");
+        gData.add("我的朋友");
+        gData.add("黑名单");
+        iData = new ArrayList<>();
+        ArrayList<String> itemList1 = new ArrayList<>();
+        itemList1.add("大妹");
+        itemList1.add("二妹");
+        itemList1.add("二妹");
+        itemList1.add("二妹");
+        itemList1.add("二妹");
+        itemList1.add("二妹");
+        itemList1.add("三妹");
+        ArrayList<String> itemList2 = new ArrayList<>();
+        itemList2.add("大美");
+        itemList2.add("二美");
+        itemList2.add("二美");
+        itemList2.add("二美");
+        itemList2.add("二美");
+        itemList2.add("二美");
+        itemList2.add("三美");
+        ArrayList<String> itemList3 = new ArrayList<>();
+        itemList3.add("狗蛋");
+        itemList3.add("狗蛋");
+        itemList3.add("狗蛋");
+        itemList3.add("狗蛋");
+        itemList3.add("狗蛋");
+        itemList3.add("狗蛋");
+        itemList3.add("狗蛋");
+        itemList3.add("狗蛋");
+        itemList3.add("狗蛋");
+        itemList3.add("狗蛋");
+        itemList3.add("狗蛋");
+        itemList3.add("二丫");
+        iData.add(itemList1);
+        iData.add(itemList2);
+        iData.add(itemList3);
+
         initView();
         initData();
     }
@@ -80,9 +129,8 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                     @Override
                     public void run() {
                         devices.clear();
-
-                        adapter.addData(result.getData());
-                        adapter.notifyDataSetChanged();
+//                        adapter.addData(result.getData());
+//                        adapter.notifyDataSetChanged();
                     }
                 });
             }
@@ -134,10 +182,14 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
 
     private void initView() {
         r_centerView = findViewById(R.id.recycler_center);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        r_centerView.setLayoutManager(layoutManager);
-        adapter = new DeviceChoiceAdapter(R.layout.item_device_choice, devices);
-        r_centerView.setAdapter(adapter);
+        //RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        //r_centerView.setLayoutManager(layoutManager);
+
+        expdAdapter = new BaseExpandableListAdapter(gData, iData, mContext);
+        //exlist_lol.setAdapter(myAdapter);
+
+        //adapter = new DeviceChoiceAdapter(R.layout.item_device_choice, devices);
+        r_centerView.setAdapter(expdAdapter);
 
         tv_bom_name_value = findViewById(R.id.tv_bom_name_value);
         tv_bom_info = findViewById(R.id.tv_bom_info);
@@ -148,6 +200,14 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         tv_bom_info.setText(bom.getSendPhone());
 
         tv_choice_device.setOnClickListener(this);
+
+        r_centerView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            @Override
+            public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+                Toast.makeText(mContext, "你点击了：" + groupPosition + " " + childPosition, Toast.LENGTH_SHORT).show();
+                return true;
+            }
+        });
     }
 
     @Override

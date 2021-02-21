@@ -97,16 +97,18 @@
             app:layout_constraintWidth_percent="0.33"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
+    <ExpandableListView
         android:id="@+id/recycler_center"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="@dimen/x9"
+        android:groupIndicator="@null"
+        android:divider="@null"
         android:background="@drawable/edittext_rect_white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/top"
         app:layout_constraintBottom_toTopOf="@+id/bottom"
         >
-    </androidx.recyclerview.widget.RecyclerView>
+    </ExpandableListView>
 </androidx.constraintlayout.widget.ConstraintLayout>
