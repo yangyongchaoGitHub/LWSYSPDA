@@ -63,9 +63,37 @@ public class ChoiceListAdapter extends RecyclerView.Adapter<ChoiceListHolder> im
     public void onBindViewHolder(@NonNull ChoiceListHolder holder, final int position) {
         holder.itemView.setTag(position);
         // 添加数据
-        holder.tv_bom_name.setText(mList.get(position).getName());
-        holder.tv_bom_reg_time.setText("下单时间：" + Utils.formatDatetoString(mList.get(position).getRegTime()));
-        holder.tv_bom_reg_user.setText("下单人：" + mList.get(position).getRegName());
+        Bom bom = mList.get(position);
+        holder.tv_bom_name.setText(bom.getName());
+        holder.tv_bom_reg_time.setText("下单时间：" + Utils.formatDatetoString(bom.getRegTime()));
+        holder.tv_bom_reg_user.setText("下单人：" + bom.getRegName());
+
+        Log.i(TAG, "status is ： " + bom.getStatus());
+
+        if (bom.getType().equals(0)) {
+            holder.tv_bom_type.setText("项目单");
+            holder.tv_bom_type.setTextColor(mContext.getResources().getColor(R.color.font_blue));
+        } else if (bom.getType().equals(1)) {
+            holder.tv_bom_type.setText("借货单");
+            holder.tv_bom_type.setTextColor(mContext.getResources().getColor(R.color.font_green));
+        } else if (bom.getType().equals(2)) {
+            holder.tv_bom_type.setText("维修单");
+            holder.tv_bom_type.setTextColor(mContext.getResources().getColor(R.color.font_red));
+        }
+
+        if (bom.getStatus().equals(0)) {
+            holder.tv_bom_status.setText("未选设备");
+            holder.tv_bom_status.setTextColor(mContext.getResources().getColor(R.color.font_blue));
+        } else if (bom.getStatus().equals(1)) {
+            holder.tv_bom_status.setText("未备货");
+            holder.tv_bom_status.setTextColor(mContext.getResources().getColor(R.color.font_org));
+        } else if (bom.getStatus().equals(2)) {
+            holder.tv_bom_status.setText("已备货");
+            holder.tv_bom_status.setTextColor(mContext.getResources().getColor(R.color.font_green));
+        } else if (bom.getStatus().equals(3)) {
+            holder.tv_bom_status.setText("已修改");
+            holder.tv_bom_status.setTextColor(mContext.getResources().getColor(R.color.font_red));
+        }
 
         holder.root.setOnClickListener(new View.OnClickListener() {
             @Override

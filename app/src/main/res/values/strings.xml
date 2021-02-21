@@ -30,5 +30,6 @@
     <string name="bomname">备货项目</string>
     <string name="scan">扫码</string>
     <string name="choicedevice">选择设备</string>
+    <string name="choiceparts">选择配件</string>
 
 </resources>

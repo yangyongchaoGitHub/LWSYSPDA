@@ -9,6 +9,7 @@ public class Device implements Serializable {
     private Integer id;
     //设备系列(0办证机1闸机2配件3打印机4网络设备5其他)
     private Integer series;
+    private String seriesName;
     //设备编码
     private String code;
     //设备名称
@@ -39,11 +40,6 @@ public class Device implements Serializable {
 
     @JsonIgnore
     private boolean bAddWait = false;
-
-    //状态1 未入库  2入库
-    private Integer status;
-
-    private Integer deviceId;
 
     public Integer getId() {
         return id;
@@ -134,21 +130,6 @@ public class Device implements Serializable {
         this.rssi = rssi;
     }
 
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public Integer getDeviceId() {
-        return deviceId;
-    }
-
-    public void setDeviceId(Integer deviceId) {
-        this.deviceId = deviceId;
-    }
 
     public boolean isbAddWait() {
         return bAddWait;
@@ -156,5 +137,13 @@ public class Device implements Serializable {
 
     public void setbAddWait(boolean bAddWait) {
         this.bAddWait = bAddWait;
+    }
+
+    public String getSeriesName() {
+        return seriesName;
+    }
+
+    public void setSeriesName(String seriesName) {
+        this.seriesName = seriesName;
     }
 }

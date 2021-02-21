@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
-    android:background="@color/bg_white"
+    android:background="@color/bg_gray"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -11,6 +11,7 @@
         android:id="@+id/top"
         android:layout_width="match_parent"
         android:layout_height="@dimen/x100"
+        android:background="@drawable/edittext_rect_white"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent">
 
@@ -18,6 +19,7 @@
             android:id="@+id/tv_bom_name"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:textSize="@dimen/x14"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -27,6 +29,7 @@
             app:layout_constraintHorizontal_bias="0.12"
             app:layout_constraintRight_toRightOf="parent"
             android:text="@string/bomname"
+            android:textStyle="bold"
             android:gravity="left|center"/>
 
         <TextView
@@ -39,7 +42,9 @@
             app:layout_constraintHeight_percent="0.3"
             app:layout_constraintVertical_bias="0.15"
             app:layout_constraintRight_toRightOf="parent"
-            android:text="@string/bomname"
+            android:textColor="@color/font_blue1"
+            android:textStyle="bold"
+            android:textSize="@dimen/x14"
             android:gravity="left|center"/>
 
         <TextView
@@ -60,7 +65,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottom"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/x100"
+        android:layout_height="@dimen/x60"
+        android:layout_marginTop="@dimen/x6"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent">
 
@@ -77,19 +83,30 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintWidth_percent="0.33"/>
 
+        <TextView
+            android:id="@+id/tv_choice_parts"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:text="@string/choiceparts"
+            android:gravity="center"
+            android:background="@drawable/edittext_rect_white"
+            android:textSize="@dimen/x13"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@+id/tv_choice_device"
+            app:layout_constraintWidth_percent="0.33"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_center"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginTop="@dimen/x9"
+        android:background="@drawable/edittext_rect_white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/top"
         app:layout_constraintBottom_toTopOf="@+id/bottom"
         >
     </androidx.recyclerview.widget.RecyclerView>
-
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

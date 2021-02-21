@@ -18,12 +18,13 @@ public class DeviceChoiceAdapter extends BaseQuickAdapter<Device, BaseViewHolder
 
     @Override
     protected void convert(@NotNull BaseViewHolder baseViewHolder, Device item) {
-        baseViewHolder.setText(R.id.tv_device_serics, item.getHouseName())
+        baseViewHolder.setText(R.id.tv_device_serics, item.getSeriesName())
                 .setText(R.id.tv_device_number, item.getCode())
                 .setText(R.id.tv_device_class, item.getClassName())
                 .setText(R.id.tv_room_name, item.getHouseName())
-                .setText(R.id.tv_series_name, item.getClassName())
-                .setText(R.id.tv_room_remark, item.getRemark());
+                .setText(R.id.tv_series_name, item.getName())
+                .setText(R.id.tv_room_remark, "备注：" + item.getRemark())
+                .setText(R.id.tv_device_rssi, item.getRssi());
         if (item.isbAddWait()) {
             baseViewHolder.findView(R.id.iv_selector).setBackgroundResource(R.drawable.select_slod_blue);
         } else {

@@ -62,7 +62,6 @@ public class ChoiceActivity extends BascActivity implements OnItemClickListener,
         mRetrofit = MyApplication.getmRetrofit();
         initView();
         initData();
-
     }
 
     private void initData() {

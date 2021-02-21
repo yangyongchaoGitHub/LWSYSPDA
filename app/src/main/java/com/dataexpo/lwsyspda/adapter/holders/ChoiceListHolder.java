@@ -15,6 +15,8 @@ public class ChoiceListHolder extends RecyclerView.ViewHolder {
     public TextView tv_bom_reg_time;
     public TextView tv_bom_reg_user;
     public TextView tv_bom_status;
+    public TextView tv_bom_type;
+    public TextView tv_device_rssi;
     public ConstraintLayout root;
 
     public ChoiceListHolder(@NonNull View itemView) {
@@ -25,5 +27,7 @@ public class ChoiceListHolder extends RecyclerView.ViewHolder {
         tv_bom_reg_time = itemView.findViewById(R.id.tv_bom_reg_time);
         tv_bom_reg_user = itemView.findViewById(R.id.tv_bom_reg_user);
         tv_bom_status = itemView.findViewById(R.id.tv_bom_status);
+        tv_bom_type = itemView.findViewById(R.id.tv_bom_type);
+        tv_device_rssi = itemView.findViewById(R.id.tv_device_rssi);
     }
 }

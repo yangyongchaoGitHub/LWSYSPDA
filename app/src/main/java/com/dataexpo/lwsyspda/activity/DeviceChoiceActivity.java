@@ -32,6 +32,7 @@ import com.dataexpo.lwsyspda.retrofitInf.BomService;
 import com.dataexpo.lwsyspda.rfid.EpcData;
 import com.dataexpo.lwsyspda.rfid.EpcUtil;
 import com.dataexpo.lwsyspda.rfid.ReadThread;
+import com.dataexpo.lwsyspda.view.RfidDialog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,13 +46,18 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class DeviceChoiceActivity extends BascActivity implements EpcData, OnItemClickListener, View.OnClickListener {
+public class DeviceChoiceActivity extends BascActivity implements EpcData, OnItemClickListener, View.OnClickListener, RfidDialog.OnDialogClickListener {
     private static final String TAG = DeviceChoiceActivity.class.getSimpleName();
     private Context mContext;
 
     private EditText et_input;
     private TextView tv_rfid_status;
     private TextView tv_success;
+
+    private TextView tv_total;
+    private TextView tv_wait;
+    private TextView tv_selected;
+    private TextView tv_null;
 
     private RecyclerView r_centerView;
 
@@ -79,6 +85,8 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
     HashMap<Integer, Integer> soundMap = new HashMap<Integer, Integer>();
 
     private long startTime, usTim, pauseTime;
+
+    private RfidDialog mDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -188,16 +196,18 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
                     @Override
                     public void run() {
                         if (result.getErrcode() == -1) {
-                            Toast.makeText(mContext, "数据库找不到设备", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(mContext, "存在找不到的标签", Toast.LENGTH_SHORT).show();
                             if (request != null) {
                                 request.status = 4;
                             }
                         } else {
                             Log.i(TAG, "device name: " + result.getData().getName() + " id " + result.getData().getId());
-                            addShowDevice(result.getData(), false);
+                            Device device = result.getData();
                             if (request != null) {
+                                device.setRssi(request.rssi);
                                 request.status = 3;
                             }
+                            addShowDevice(result.getData(), false);
                         }
                     }
                 });
@@ -211,38 +221,6 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
                     request.status = 2;
                 }
                 Log.i(TAG, "onFailure " + t.toString());
-            }
-        });
-    }
-
-    private void getBomSerial() {
-        BomService bomService = mRetrofit.create(BomService.class);
-
-        //查询项目单
-        Call<NetResult<List<BomHouseInfo>>> call = bomService.getBomSeries(bom.getId());
-
-        call.enqueue(new Callback<NetResult<List<BomHouseInfo>>>() {
-            @Override
-            public void onResponse(Call<NetResult<List<BomHouseInfo>>> call, Response<NetResult<List<BomHouseInfo>>> response) {
-                NetResult<List<BomHouseInfo>> result = response.body();
-                if (result == null) {
-                    return;
-                }
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (result.getErrcode() == -1) {
-                        } else {
-                            bomHouseInfos = result.getData();
-                        }
-                    }
-                });
-            }
-
-            @Override
-            public void onFailure(Call<NetResult<List<BomHouseInfo>>> call, Throwable t) {
-
             }
         });
     }
@@ -285,6 +263,18 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
 
         tv_success = findViewById(R.id.tv_success);
         tv_success.setOnClickListener(this);
+
+        tv_total = findViewById(R.id.tv_total);
+        tv_wait = findViewById(R.id.tv_wait);
+        tv_selected = findViewById(R.id.tv_selected);
+        tv_null = findViewById(R.id.tv_null);
+
+        tv_null.setOnClickListener(this);
+
+        mDialog = new RfidDialog(mContext);
+        mDialog.setDialogClickListener(this);
+        mDialog.setCanceledOnTouchOutside(false);
+        mDialog.setCancelable(false);
     }
 
     private void playSound() {
@@ -311,6 +301,11 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
         super.onResume();
         Log.i(TAG, "onResume");
         mUtil.setEpcData(this);
+
+        boolean flag = ReadThread.getInstance().isIfInventory();
+        if (!flag) {
+            tv_rfid_status.setBackgroundResource(mUtil.inventoryStart() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+        }
     }
 
     @Override
@@ -320,13 +315,33 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
             String epc = tagData[0];
             String rssiStr = tagData[2];
 
-            RfidEntity request = rfidLocal.get(epc);
+            //去掉前面的0
+            while (epc.length() > 0 && epc.startsWith("0")) {
+                epc = epc.substring(1);
+            }
 
-            //Log.i(TAG, "read card " + epc);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    tv_total.setText("总数:" + rfidLocal.size());
+                    int unkown = 0;
+                    Iterator<Map.Entry<String, RfidEntity>> iterator = rfidLocal.entrySet().iterator();
+                    while (iterator.hasNext()) {
+                        if (iterator.next().getValue().status == 4) {
+                            unkown++;
+                        }
+                    }
+
+                    tv_wait.setText("可选:" + (rfidLocal.size() - unkown));
+                    tv_selected.setText("已备选:" + exists.size());
+                    tv_null.setText("未知:" + unkown);
+                }
+            });
+
+            RfidEntity request = rfidLocal.get(epc);
 
             //设备已在选择列表中则不再显示
             for (Device ex: exists) {
-                Log.i(TAG, " ex : " + ex.getCode());
                 if (ex.getCode().equals(epc)) {
                     return;
                 }
@@ -453,6 +468,9 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
             case R.id.tv_success:
                 addDeviceInBom();
                 break;
+            case R.id.tv_null:
+                //mDialog.show();
+                break;
             default:
         }
     }
@@ -490,8 +508,8 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
                     public void run() {
                         if (result.getErrcode() == -1) {
                             Toast.makeText(mContext, "添加失败", Toast.LENGTH_SHORT).show();
-                        } else {
 
+                        } else {
                             //添加成功关闭界面
                             DeviceChoiceActivity.this.finish();
                         }
@@ -515,5 +533,17 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
             tv_rfid_status.setBackgroundResource(!mUtil.invenrotyStop() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
         }
         super.onPause();
+    }
+
+    //弹出框事件
+    @Override
+    public void onConfirmClick(View view) {
+        mDialog.dismiss();
+    }
+
+    //弹出框事件
+    @Override
+    public void onModifierClick(View view) {
+        mDialog.dismiss();
     }
 }

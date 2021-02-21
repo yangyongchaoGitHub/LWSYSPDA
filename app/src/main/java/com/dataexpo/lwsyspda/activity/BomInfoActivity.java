@@ -14,6 +14,7 @@ import com.dataexpo.lwsyspda.MyApplication;
 import com.dataexpo.lwsyspda.R;
 import com.dataexpo.lwsyspda.adapter.DeviceChoiceAdapter;
 import com.dataexpo.lwsyspda.entity.Bom;
+import com.dataexpo.lwsyspda.entity.BomHouseInfo;
 import com.dataexpo.lwsyspda.entity.Device;
 import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
@@ -55,10 +56,13 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         }
         initView();
         initData();
-
     }
 
     private void initData() {
+        getBomSerial();
+    }
+
+    private void getBomDevice() {
         BomService bomService = mRetrofit.create(BomService.class);
 
         Call<NetResult<List<Device>>> call = bomService.getBomDevice(bom.getId());
@@ -75,6 +79,8 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        devices.clear();
+
                         adapter.addData(result.getData());
                         adapter.notifyDataSetChanged();
                     }
@@ -84,6 +90,44 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
             @Override
             public void onFailure(Call<NetResult<List<Device>>> call, Throwable t) {
                 Log.i(TAG, "onFailure" + t.toString());
+            }
+        });
+    }
+
+    private void getBomSerial() {
+        BomService bomService = mRetrofit.create(BomService.class);
+
+        //查询项目单
+        Call<NetResult<List<BomHouseInfo>>> call = bomService.getBomSeries(bom.getId());
+
+        call.enqueue(new Callback<NetResult<List<BomHouseInfo>>>() {
+            @Override
+            public void onResponse(Call<NetResult<List<BomHouseInfo>>> call, Response<NetResult<List<BomHouseInfo>>> response) {
+                NetResult<List<BomHouseInfo>> result = response.body();
+                if (result == null) {
+                    return;
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (result.getErrcode() == -1) {
+                        } else {
+                            //显示
+                            List<BomHouseInfo> bomHouseInfos = result.getData();
+                            StringBuilder str = new StringBuilder();
+                            for(BomHouseInfo b : bomHouseInfos) {
+                                str.append(b.getClassName()).append(" * ").append(b.getClassNum()).append("、");
+                            }
+                            tv_bom_info.setText(str);
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Call<NetResult<List<BomHouseInfo>>> call, Throwable t) {
+
             }
         });
     }
@@ -99,6 +143,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         tv_bom_info = findViewById(R.id.tv_bom_info);
         tv_choice_device = findViewById(R.id.tv_choice_device);
 
+        //设置值
         tv_bom_name_value.setText(bom.getName());
         tv_bom_info.setText(bom.getSendPhone());
 
@@ -119,5 +164,11 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                 break;
             default:
         }
+    }
+
+    @Override
+    protected void onResume() {
+        getBomDevice();
+        super.onResume();
     }
 }
