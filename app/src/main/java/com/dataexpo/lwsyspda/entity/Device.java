@@ -41,6 +41,10 @@ public class Device implements Serializable {
     @JsonIgnore
     private boolean bAddWait = false;
 
+    //设备状态，先根据bom_device的状态查看是否已经入库， 未入库再根据device表的bomid和当前查询项目的bomid比较
+    // 0 入库， 1未入库， 2 已调拨， 3非项目
+    private Integer status;
+
     public Integer getId() {
         return id;
     }
@@ -145,5 +149,13 @@ public class Device implements Serializable {
 
     public void setSeriesName(String seriesName) {
         this.seriesName = seriesName;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }

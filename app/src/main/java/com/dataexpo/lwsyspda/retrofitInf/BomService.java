@@ -6,6 +6,7 @@ import com.dataexpo.lwsyspda.entity.BomHouseInfo;
 import com.dataexpo.lwsyspda.entity.Device;
 import com.dataexpo.lwsyspda.entity.Login;
 import com.dataexpo.lwsyspda.entity.NetResult;
+import com.dataexpo.lwsyspda.entity.PdaBomSeriesVo;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ public interface BomService {
                                           @Query("overStatus") Integer overStatus);
 
     @GET(bomSeriesUrl)
-    Call<NetResult<List<BomHouseInfo>>> getBomSeries(@Query("bomId") int bomId);
+    Call<NetResult<PdaBomSeriesVo>> getBomSeries(@Query("bomId") int bomId);
 
     @GET(bomDeviceUrl)
     Call<NetResult<List<Device>>> getBomDevice(@Query("bomId") int bomId);

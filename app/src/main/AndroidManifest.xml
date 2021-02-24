@@ -57,7 +57,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.SelectActivity"/>
-        <activity android:name=".activity.ChoiceActivity"/>
+        <activity android:name=".activity.BomChoiceActivity"/>
         <activity android:name=".activity.DeviceChoiceActivity"/>
         <activity android:name=".activity.InboundChoiceActivity"/>
         <activity android:name=".activity.BomInfoActivity"/>

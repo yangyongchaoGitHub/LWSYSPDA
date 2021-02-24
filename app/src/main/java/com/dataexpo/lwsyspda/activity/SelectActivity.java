@@ -40,7 +40,7 @@ public class SelectActivity extends BascActivity implements View.OnClickListener
         switch (v.getId()) {
             case R.id.tv_model_choice:
                 //备货
-                startActivity(new Intent(mContext, ChoiceActivity.class));
+                startActivity(new Intent(mContext, BomChoiceActivity.class));
                 break;
 
             case R.id.tv_model_inbound:

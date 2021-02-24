@@ -22,13 +22,13 @@
 
     <ImageView
         android:id="@+id/iv_group_icon"
-        android:layout_width="@dimen/x45"
+        android:layout_width="@dimen/x30"
         android:layout_height="@dimen/x45"
-        android:background="@drawable/group_icon"
         app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginRight="@dimen/x45"/>
+        android:layout_marginRight="@dimen/x30"/>
 
     <TextView
+        android:id="@+id/tv_group_selector"
         android:layout_width="@dimen/x100"
         android:layout_height="@dimen/x45"
         android:gravity="center|right"

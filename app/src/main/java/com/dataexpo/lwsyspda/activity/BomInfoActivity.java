@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ExpandableListView;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,7 +20,9 @@ import com.dataexpo.lwsyspda.adapter.DeviceChoiceAdapter;
 import com.dataexpo.lwsyspda.entity.Bom;
 import com.dataexpo.lwsyspda.entity.BomHouseInfo;
 import com.dataexpo.lwsyspda.entity.Device;
+import com.dataexpo.lwsyspda.entity.DeviceSeries;
 import com.dataexpo.lwsyspda.entity.NetResult;
+import com.dataexpo.lwsyspda.entity.PdaBomSeriesVo;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
 
 import java.util.ArrayList;
@@ -48,8 +51,9 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
 
     private ArrayList<Device> devices = new ArrayList<>();
 
-    private ArrayList<String> gData;
-    private ArrayList<ArrayList<String>> iData;
+    private ArrayList<BomHouseInfo> gData = new ArrayList<>();
+    private ArrayList<ArrayList<Device>> iData = new ArrayList<>();
+    private ArrayList<DeviceSeries> allDeviceSeries = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,55 +66,14 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
             bom = (Bom) bundle.getSerializable("bom");
         }
 
-
-        gData = new ArrayList<>();
-        iData = new ArrayList<>();
-        gData = new ArrayList<>();
-        gData.add("我的家人");
-        gData.add("我的朋友");
-        gData.add("黑名单");
-        iData = new ArrayList<>();
-        ArrayList<String> itemList1 = new ArrayList<>();
-        itemList1.add("大妹");
-        itemList1.add("二妹");
-        itemList1.add("二妹");
-        itemList1.add("二妹");
-        itemList1.add("二妹");
-        itemList1.add("二妹");
-        itemList1.add("三妹");
-        ArrayList<String> itemList2 = new ArrayList<>();
-        itemList2.add("大美");
-        itemList2.add("二美");
-        itemList2.add("二美");
-        itemList2.add("二美");
-        itemList2.add("二美");
-        itemList2.add("二美");
-        itemList2.add("三美");
-        ArrayList<String> itemList3 = new ArrayList<>();
-        itemList3.add("狗蛋");
-        itemList3.add("狗蛋");
-        itemList3.add("狗蛋");
-        itemList3.add("狗蛋");
-        itemList3.add("狗蛋");
-        itemList3.add("狗蛋");
-        itemList3.add("狗蛋");
-        itemList3.add("狗蛋");
-        itemList3.add("狗蛋");
-        itemList3.add("狗蛋");
-        itemList3.add("狗蛋");
-        itemList3.add("二丫");
-        iData.add(itemList1);
-        iData.add(itemList2);
-        iData.add(itemList3);
-
         initView();
-        initData();
     }
 
     private void initData() {
         getBomSerial();
     }
 
+    //获取订单设备
     private void getBomDevice() {
         BomService bomService = mRetrofit.create(BomService.class);
 
@@ -128,9 +91,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        devices.clear();
-//                        adapter.addData(result.getData());
-//                        adapter.notifyDataSetChanged();
+                        classify(result.getData());
                     }
                 });
             }
@@ -142,16 +103,77 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         });
     }
 
+    //将设备分类到组别
+    private void classify(List<Device> data) {
+        ArrayList<Device> dAdd;
+        int total = 0;
+
+        for (BomHouseInfo b : gData) {
+            total += b.getClassNum();
+            dAdd = new ArrayList<>();
+
+            Log.i(TAG, "bhi " + b.getSeries());
+
+            for (Device d : data) {
+                Log.i(TAG, "bhi " + b.getSeries() + " did " + d.getId() + " || " +  d.getSeries());
+                if (d.getSeries().equals(b.getSeries())) {
+
+                    dAdd.add(d);
+                }
+            }
+            iData.add(dAdd);
+        }
+
+        if (total - data.size() > 0) {
+            Log.i(TAG, "add new " + total + " | " + data.size());
+
+            for (DeviceSeries ds : allDeviceSeries) {
+                dAdd = new ArrayList<>();
+
+                Log.i(TAG, "bhi " + ds.getId());
+
+                for (Device d : data) {
+                    Log.i(TAG, "bhi " + ds.getId() + " did " + d.getId() + " || " + d.getSeries());
+                    if (d.getSeries().equals(ds.getId())) {
+                        dAdd.add(d);
+                    }
+                }
+
+                if (dAdd.size() > 0) {
+                    iData.add(dAdd);
+                    BomHouseInfo bomHouseInfo = new BomHouseInfo();
+                    bomHouseInfo.setClassName(ds.getName());
+                    bomHouseInfo.setClassNum(dAdd.size());
+                    gData.add(bomHouseInfo);
+                }
+                Log.i(TAG, "iData size: " + dAdd.size());
+            }
+        }
+
+        Log.i(TAG, "classify--- " + iData.size() + " " + gData.size());
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                expdAdapter = new BaseExpandableListAdapter(gData, iData, mContext, r_centerView);
+                r_centerView.setAdapter(expdAdapter);
+//                expdAdapter.ref(gData, iData);
+//                expdAdapter.refresh(r_centerView, gData);
+            }
+        });
+    }
+
+    //获取订单的设备系列
     private void getBomSerial() {
         BomService bomService = mRetrofit.create(BomService.class);
 
         //查询项目单
-        Call<NetResult<List<BomHouseInfo>>> call = bomService.getBomSeries(bom.getId());
+        Call<NetResult<PdaBomSeriesVo>> call = bomService.getBomSeries(bom.getId());
 
-        call.enqueue(new Callback<NetResult<List<BomHouseInfo>>>() {
+        call.enqueue(new Callback<NetResult<PdaBomSeriesVo>>() {
             @Override
-            public void onResponse(Call<NetResult<List<BomHouseInfo>>> call, Response<NetResult<List<BomHouseInfo>>> response) {
-                NetResult<List<BomHouseInfo>> result = response.body();
+            public void onResponse(Call<NetResult<PdaBomSeriesVo>> call, Response<NetResult<PdaBomSeriesVo>> response) {
+                NetResult<PdaBomSeriesVo> result = response.body();
                 if (result == null) {
                     return;
                 }
@@ -162,34 +184,32 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                         if (result.getErrcode() == -1) {
                         } else {
                             //显示
-                            List<BomHouseInfo> bomHouseInfos = result.getData();
+                            List<BomHouseInfo> bomHouseInfos = result.getData().getBomHouseInfos();
                             StringBuilder str = new StringBuilder();
                             for(BomHouseInfo b : bomHouseInfos) {
                                 str.append(b.getClassName()).append(" * ").append(b.getClassNum()).append("、");
                             }
+                            gData = (ArrayList<BomHouseInfo>) bomHouseInfos;
+                            allDeviceSeries = (ArrayList<DeviceSeries>) result.getData().getDeviceSeries();
                             tv_bom_info.setText(str);
+                            getBomDevice();
                         }
                     }
                 });
             }
 
             @Override
-            public void onFailure(Call<NetResult<List<BomHouseInfo>>> call, Throwable t) {
+            public void onFailure(Call<NetResult<PdaBomSeriesVo>> call, Throwable t) {
 
             }
         });
     }
 
+    boolean bb = false;
     private void initView() {
         r_centerView = findViewById(R.id.recycler_center);
         //RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         //r_centerView.setLayoutManager(layoutManager);
-
-        expdAdapter = new BaseExpandableListAdapter(gData, iData, mContext);
-        //exlist_lol.setAdapter(myAdapter);
-
-        //adapter = new DeviceChoiceAdapter(R.layout.item_device_choice, devices);
-        r_centerView.setAdapter(expdAdapter);
 
         tv_bom_name_value = findViewById(R.id.tv_bom_name_value);
         tv_bom_info = findViewById(R.id.tv_bom_info);
@@ -200,11 +220,26 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         tv_bom_info.setText(bom.getSendPhone());
 
         tv_choice_device.setOnClickListener(this);
-
+        //更换自定义图标
+        //r_centerView.setGroupIndicator(this.getResources().getDrawable(R.drawable.expandablelistviewselector));
+//        r_centerView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+//            @Override
+//            public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+//                Toast.makeText(mContext, "你点击了group：" + groupPosition + " | " + v.toString(), Toast.LENGTH_SHORT).show();
+//                ImageView imageView = v.findViewById(R.id.iv_group_icon);
+//                if (bb) {
+//                    imageView.setImageResource(R.drawable.expanding_icon);
+//                } else {
+//                    imageView.setImageResource(R.drawable.collapsing_icon);
+//                }
+//                return true;
+//            }
+//        });
         r_centerView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-                Toast.makeText(mContext, "你点击了：" + groupPosition + " " + childPosition, Toast.LENGTH_SHORT).show();
+
+                Toast.makeText(mContext, "你点击了child：" + groupPosition + " " + childPosition + " | " + v.toString(), Toast.LENGTH_SHORT).show();
                 return true;
             }
         });
@@ -228,7 +263,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
 
     @Override
     protected void onResume() {
-        getBomDevice();
+        initData();
         super.onResume();
     }
 }

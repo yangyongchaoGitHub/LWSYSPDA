@@ -18,5 +18,7 @@
     <color name="font_red">#F97676</color>
     <color name="font_org">#FFC893</color>
     <color name="font_blue1">#6D91FB</color>
+    <color name="font_gray1">#F8F9FF</color>
+
 
 </resources>

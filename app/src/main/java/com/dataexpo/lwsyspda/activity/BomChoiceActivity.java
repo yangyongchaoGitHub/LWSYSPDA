@@ -37,7 +37,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class ChoiceActivity extends BascActivity implements OnItemClickListener, View.OnClickListener {
+public class BomChoiceActivity extends BascActivity implements OnItemClickListener, View.OnClickListener {
     private static final String TAG = SelectActivity.class.getSimpleName();
     private Context mContext;
 
