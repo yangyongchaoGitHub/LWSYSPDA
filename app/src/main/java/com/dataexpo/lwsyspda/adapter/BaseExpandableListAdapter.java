@@ -14,16 +14,26 @@ import android.widget.TextView;
 import com.dataexpo.lwsyspda.R;
 import com.dataexpo.lwsyspda.entity.BomHouseInfo;
 import com.dataexpo.lwsyspda.entity.Device;
+import com.dataexpo.lwsyspda.entity.NetResult;
+import com.dataexpo.lwsyspda.listener.DeviceDeleteListener;
+import com.dataexpo.lwsyspda.retrofitInf.BomService;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class BaseExpandableListAdapter extends android.widget.BaseExpandableListAdapter {
     private static final String TAG = BaseExpandableListAdapter.class.getName();
+    private DeviceDeleteListener deviceDeleteListener;
     private ExpandableListView expandableListView;
     private ArrayList<BomHouseInfo> gData;
     private ArrayList<ArrayList<Device>> iData;
     private Context mContext;
     Handler handler;
+
 
     public BaseExpandableListAdapter(ArrayList<BomHouseInfo> gData,ArrayList<ArrayList<Device>> iData, Context mContext,
                                      ExpandableListView expandableListView) {
@@ -56,6 +66,10 @@ public class BaseExpandableListAdapter extends android.widget.BaseExpandableList
         for (int i = 0; i < timeList.size(); i++) {
             mExpandableListView.expandGroup(i);
         }
+    }
+
+    public void setDeviceDeleteListener(DeviceDeleteListener deviceDeleteListener) {
+        this.deviceDeleteListener = deviceDeleteListener;
     }
 
     @Override
@@ -119,6 +133,7 @@ public class BaseExpandableListAdapter extends android.widget.BaseExpandableList
         } else {
             groupHolder.iv_group_icon.setImageResource(R.drawable.collapsing_icon);
         }
+        Log.i(TAG, "getGroupView: " + groupPosition + " | " + isExpanded);
 
         return convertView;
     }
@@ -154,8 +169,11 @@ public class BaseExpandableListAdapter extends android.widget.BaseExpandableList
             @Override
             public void onClick(View v) {
                 Log.i("BaseExpa", "onClick " + groupPosition + " || " + childPosition);
-                iData.get(groupPosition).remove(childPosition);
-                refresh(expandableListView, gData);
+                //iData.get(groupPosition).remove(childPosition);
+                if (deviceDeleteListener!= null) {
+                    deviceDeleteListener.onDeleteClick(v, groupPosition, childPosition);
+                }
+                //refresh(expandableListView, gData);
             }
         });
         return convertView;
@@ -180,4 +198,5 @@ public class BaseExpandableListAdapter extends android.widget.BaseExpandableList
         private TextView tv_delete;
         private TextView tv_show;
     }
+
 }

@@ -61,6 +61,7 @@
         <activity android:name=".activity.DeviceChoiceActivity"/>
         <activity android:name=".activity.InboundChoiceActivity"/>
         <activity android:name=".activity.BomInfoActivity"/>
+        <activity android:name=".activity.DeviceInfoActivity"/>
     </application>
 
 </manifest>

@@ -78,6 +78,7 @@
         app:layout_constraintWidth_percent="0.24" />
 
     <TextView
+        android:visibility="gone"
         android:id="@+id/tv_device_rssi"
         android:layout_width="0dp"
         android:layout_height="0dp"

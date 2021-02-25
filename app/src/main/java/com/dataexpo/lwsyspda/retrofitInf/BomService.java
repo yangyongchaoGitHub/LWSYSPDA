@@ -4,6 +4,7 @@ import com.dataexpo.lwsyspda.entity.Bom;
 import com.dataexpo.lwsyspda.entity.BomDeviceVo;
 import com.dataexpo.lwsyspda.entity.BomHouseInfo;
 import com.dataexpo.lwsyspda.entity.Device;
+import com.dataexpo.lwsyspda.entity.DeviceUsingInfo;
 import com.dataexpo.lwsyspda.entity.Login;
 import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.entity.PdaBomSeriesVo;
@@ -41,4 +42,10 @@ public interface BomService {
     @Deprecated
     @GET(bomFindDeviceInfoByRfidUrl)
     Call<NetResult<Device>> queryDeviceInfoByRfid(@Query("rfid") String rfid);
+
+    @POST(deleteBomDeviceUrl)
+    Call<NetResult<String>> deleteBomDevice(@Body BomDeviceVo bomDeviceVo);
+
+    @GET(deviceInfoUrl)
+    Call<NetResult<List<DeviceUsingInfo>>> getDeviceInfo(@Query("code") String code, @Query("type") Integer type);
 }

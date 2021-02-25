@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
+<!--    -->
     <EditText
         android:id="@+id/et_login_name"
         android:layout_width="0dp"
@@ -19,7 +19,7 @@
         app:layout_constraintVertical_bias="0.35"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
-
+<!--    -->
     <EditText
         android:id="@+id/et_login_pswd"
         android:layout_width="0dp"

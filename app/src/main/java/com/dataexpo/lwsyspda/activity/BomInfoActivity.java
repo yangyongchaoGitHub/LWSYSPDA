@@ -18,11 +18,13 @@ import com.dataexpo.lwsyspda.R;
 import com.dataexpo.lwsyspda.adapter.BaseExpandableListAdapter;
 import com.dataexpo.lwsyspda.adapter.DeviceChoiceAdapter;
 import com.dataexpo.lwsyspda.entity.Bom;
+import com.dataexpo.lwsyspda.entity.BomDeviceVo;
 import com.dataexpo.lwsyspda.entity.BomHouseInfo;
 import com.dataexpo.lwsyspda.entity.Device;
 import com.dataexpo.lwsyspda.entity.DeviceSeries;
 import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.entity.PdaBomSeriesVo;
+import com.dataexpo.lwsyspda.listener.DeviceDeleteListener;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
 
 import java.util.ArrayList;
@@ -33,7 +35,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class BomInfoActivity extends BascActivity implements View.OnClickListener {
+import static com.dataexpo.lwsyspda.retrofitInf.URLs.deleteBomDeviceUrl;
+
+public class BomInfoActivity extends BascActivity implements View.OnClickListener, DeviceDeleteListener {
     private static final String TAG = BomInfoActivity.class.getSimpleName();
     private Context mContext;
 
@@ -91,6 +95,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        devices = (ArrayList<Device>) result.getData();
                         classify(result.getData());
                     }
                 });
@@ -108,23 +113,34 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         ArrayList<Device> dAdd;
         int total = 0;
 
-        for (BomHouseInfo b : gData) {
-            total += b.getClassNum();
-            dAdd = new ArrayList<>();
+//        for (BomHouseInfo b : gData) {
+//            total += b.getClassNum();
+//            dAdd = new ArrayList<>();
+//
+//            Log.i(TAG, "bhi " + b.getSeries());
+//
+//            for (Device d : data) {
+//                Log.i(TAG, "bhi " + b.getSeries() + " did " + d.getId() + " || " +  d.getSeries());
+//                if (d.getSeries().equals(b.getSeries())) {
+//                    dAdd.add(d);
+//                }
+//            }
+//            iData.add(dAdd);
+//        }
 
-            Log.i(TAG, "bhi " + b.getSeries());
+        ArrayList<DeviceSeries> temp = new ArrayList<>(allDeviceSeries);
 
-            for (Device d : data) {
-                Log.i(TAG, "bhi " + b.getSeries() + " did " + d.getId() + " || " +  d.getSeries());
-                if (d.getSeries().equals(b.getSeries())) {
-
-                    dAdd.add(d);
+        for (DeviceSeries ds : temp) {
+            for (BomHouseInfo b : gData) {
+                if (ds.getId().equals(b.getSeries())) {
+                    Log.i(TAG, "classify " + ds.getId() + " | " + b.getSeries());
+                    ds.setbSrc(true);
+                    break;
                 }
             }
-            iData.add(dAdd);
         }
 
-        if (total - data.size() > 0) {
+        //if (total - data.size() > 0) {
             Log.i(TAG, "add new " + total + " | " + data.size());
 
             for (DeviceSeries ds : allDeviceSeries) {
@@ -139,16 +155,18 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                     }
                 }
 
-                if (dAdd.size() > 0) {
+                if (dAdd.size() > 0 || ds.isbSrc()) {
                     iData.add(dAdd);
                     BomHouseInfo bomHouseInfo = new BomHouseInfo();
                     bomHouseInfo.setClassName(ds.getName());
                     bomHouseInfo.setClassNum(dAdd.size());
-                    gData.add(bomHouseInfo);
+                    if (!ds.isbSrc()) {
+                        gData.add(bomHouseInfo);
+                    }
                 }
                 Log.i(TAG, "iData size: " + dAdd.size());
             }
-        }
+        //}
 
         Log.i(TAG, "classify--- " + iData.size() + " " + gData.size());
 
@@ -157,6 +175,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
             public void run() {
                 expdAdapter = new BaseExpandableListAdapter(gData, iData, mContext, r_centerView);
                 r_centerView.setAdapter(expdAdapter);
+                expdAdapter.setDeviceDeleteListener(BomInfoActivity.this);
 //                expdAdapter.ref(gData, iData);
 //                expdAdapter.refresh(r_centerView, gData);
             }
@@ -238,6 +257,12 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         r_centerView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+                Intent intent = new Intent(mContext, DeviceInfoActivity.class);
+                Bundle bundle = new Bundle();
+                //传递name参数为tinyphp
+                bundle.putSerializable("device", iData.get(groupPosition).get(childPosition));
+                intent.putExtras(bundle);
+                startActivity(intent);
 
                 Toast.makeText(mContext, "你点击了child：" + groupPosition + " " + childPosition + " | " + v.toString(), Toast.LENGTH_SHORT).show();
                 return true;
@@ -253,6 +278,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                 Bundle bundle = new Bundle();
                 //传递name参数为tinyphp
                 bundle.putSerializable("bom", bom);
+                Log.i(TAG, "exist: " + devices.size());
                 bundle.putSerializable("devices", devices);
                 intent.putExtras(bundle);
                 startActivity(intent);
@@ -265,5 +291,48 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
     protected void onResume() {
         initData();
         super.onResume();
+    }
+
+    @Override
+    public void onDeleteClick(View view, int groupPosition, int childPosition) {
+        deleteBomDevice(groupPosition, childPosition);
+    }
+
+    private void deleteBomDevice(int groupPosition, int childPosition) {
+        BomService bomService = mRetrofit.create(BomService.class);
+        BomDeviceVo bomDeviceVo = new BomDeviceVo();
+        bomDeviceVo.setLoginId(MyApplication.getMyApp().getCallContext().getLoginId());
+        bomDeviceVo.setBomId(bom.getId());
+        List<Device> devices = new ArrayList<>();
+        devices.add(iData.get(groupPosition).get(childPosition));
+
+        Log.i(TAG, "deleteBomDevice" + iData.get(groupPosition).get(childPosition).getId() + " " +
+                iData.get(groupPosition).get(childPosition).getBomId() + " " +
+                iData.get(groupPosition).get(childPosition).getCode());
+        bomDeviceVo.setDevices(devices);
+
+        Call<NetResult<String>> call = bomService.deleteBomDevice(bomDeviceVo);
+
+        call.enqueue(new Callback<NetResult<String>>() {
+            @Override
+            public void onResponse(Call<NetResult<String>> call, Response<NetResult<String>> response) {
+                NetResult<String> result = response.body();
+                if (result == null) {
+                    return;
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        iData.get(groupPosition).remove(childPosition);
+                        expdAdapter.refresh(r_centerView, gData);
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Call<NetResult<String>> call, Throwable t) {
+                Log.i(TAG, "onFailure" + t.toString());
+            }
+        });
     }
 }

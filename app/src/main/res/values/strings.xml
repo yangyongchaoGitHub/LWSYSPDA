@@ -33,5 +33,8 @@
     <string name="choiceparts">选择配件</string>
     <string name="delete">删除</string>
     <string name="see">查看</string>
+    <string name="device_info">设备详细信息</string>
+    <string name="edit">编辑</string>
+    <string name="device_type">设备型号</string>
 
 </resources>

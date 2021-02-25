@@ -1,5 +1,7 @@
 package com.dataexpo.lwsyspda.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -26,6 +28,9 @@ public class DeviceSeries implements Serializable {
     private Integer pageNo;
     //每页数量
     private Integer pageSize;
+
+    @JsonIgnore
+    private boolean bSrc = false;
 
     public Integer getId() {
         return id;
@@ -92,5 +97,13 @@ public class DeviceSeries implements Serializable {
     }
     public void setType(Integer type) {
         this.type = type;
+    }
+
+    public boolean isbSrc() {
+        return bSrc;
+    }
+
+    public void setbSrc(boolean bSrc) {
+        this.bSrc = bSrc;
     }
 }
