@@ -36,5 +36,8 @@
     <string name="device_info">设备详细信息</string>
     <string name="edit">编辑</string>
     <string name="device_type">设备型号</string>
+    <string name="nameLike">名称</string>
+    <string name="size">数量</string>
+    <string name="confirm">确认备货</string>
 
 </resources>

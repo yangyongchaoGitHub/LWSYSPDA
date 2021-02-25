@@ -5,8 +5,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,12 +23,15 @@ import com.dataexpo.lwsyspda.adapter.DeviceChoiceAdapter;
 import com.dataexpo.lwsyspda.entity.Bom;
 import com.dataexpo.lwsyspda.entity.BomDeviceVo;
 import com.dataexpo.lwsyspda.entity.BomHouseInfo;
+import com.dataexpo.lwsyspda.entity.BomSeriesVo;
 import com.dataexpo.lwsyspda.entity.Device;
 import com.dataexpo.lwsyspda.entity.DeviceSeries;
 import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.entity.PdaBomSeriesVo;
 import com.dataexpo.lwsyspda.listener.DeviceDeleteListener;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
+import com.dataexpo.lwsyspda.view.AccessoriesDialog;
+import com.dataexpo.lwsyspda.view.RfidDialog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,13 +43,14 @@ import retrofit2.Retrofit;
 
 import static com.dataexpo.lwsyspda.retrofitInf.URLs.deleteBomDeviceUrl;
 
-public class BomInfoActivity extends BascActivity implements View.OnClickListener, DeviceDeleteListener {
+public class BomInfoActivity extends BascActivity implements View.OnClickListener, DeviceDeleteListener, AccessoriesDialog.OnDialogClickListener {
     private static final String TAG = BomInfoActivity.class.getSimpleName();
     private Context mContext;
 
     private TextView tv_bom_name_value;
     private TextView tv_bom_info;
     private TextView tv_choice_device;
+    private TextView tv_choice_parts;
 
     private ExpandableListView r_centerView;
     //private DeviceChoiceAdapter adapter;
@@ -58,6 +65,11 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
     private ArrayList<BomHouseInfo> gData = new ArrayList<>();
     private ArrayList<ArrayList<Device>> iData = new ArrayList<>();
     private ArrayList<DeviceSeries> allDeviceSeries = new ArrayList<>();
+
+    private AccessoriesDialog mDialog;
+    private ArrayAdapter<String> spinnerAdapter;
+
+    private List<String> accessoriesList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -211,6 +223,13 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                             gData = (ArrayList<BomHouseInfo>) bomHouseInfos;
                             allDeviceSeries = (ArrayList<DeviceSeries>) result.getData().getDeviceSeries();
                             tv_bom_info.setText(str);
+                            for (DeviceSeries ds: allDeviceSeries) {
+                                if (ds.getType().equals(1)) {
+                                    //配件
+                                    accessoriesList.add(ds.getName());
+                                }
+                            }
+                            spinnerAdapter.notifyDataSetChanged();
                             getBomDevice();
                         }
                     }
@@ -224,7 +243,6 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         });
     }
 
-    boolean bb = false;
     private void initView() {
         r_centerView = findViewById(R.id.recycler_center);
         //RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
@@ -233,12 +251,14 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         tv_bom_name_value = findViewById(R.id.tv_bom_name_value);
         tv_bom_info = findViewById(R.id.tv_bom_info);
         tv_choice_device = findViewById(R.id.tv_choice_device);
+        tv_choice_parts = findViewById(R.id.tv_choice_parts);
 
         //设置值
         tv_bom_name_value.setText(bom.getName());
         tv_bom_info.setText(bom.getSendPhone());
 
         tv_choice_device.setOnClickListener(this);
+        tv_choice_parts.setOnClickListener(this);
         //更换自定义图标
         //r_centerView.setGroupIndicator(this.getResources().getDrawable(R.drawable.expandablelistviewselector));
 //        r_centerView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
@@ -268,11 +288,52 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                 return true;
             }
         });
+
+        mDialog = new AccessoriesDialog(mContext);
+        mDialog.setDialogClickListener(this);
+        mDialog.setCanceledOnTouchOutside(true);
+        mDialog.setCancelable(true);
+
+        spinnerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, accessoriesList);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.confirm:
+                Log.i(TAG, "confirm " + mDialog.et_count.getText().toString() + " | " + mDialog.sp_type.getSelectedItemPosition());
+                if (mDialog.et_count.getText().toString() == null || mDialog.et_count.getText().toString().equals("")) {
+                    Toast.makeText(mContext, "请输入数量", Toast.LENGTH_SHORT).show();
+                } else {
+                    addSeries(mDialog.sp_type.getSelectedItemPosition(), Integer.parseInt(mDialog.et_count.getText().toString()));
+                }
+                break;
+
+            case R.id.tv_choice_parts:
+                mDialog.show();
+                Log.i(TAG, "show mDialog " + mDialog.sp_type);
+                if (mDialog.sp_type != null && mDialog.initend == false) {
+                    mDialog.sp_type.setAdapter(spinnerAdapter);
+                    mDialog.initend = true;
+                    mDialog.tv_confirm.setOnClickListener(this);
+
+                    mDialog.sp_type.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                            //
+                            Log.i(TAG, "OnItemSelect " + accessoriesList.get(position));
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> parent) {
+
+                        }
+                    });
+                }
+
+                break;
+
             case R.id.tv_choice_device:
                 Intent intent = new Intent(mContext, DeviceChoiceActivity.class);
                 Bundle bundle = new Bundle();
@@ -296,6 +357,51 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
     @Override
     public void onDeleteClick(View view, int groupPosition, int childPosition) {
         deleteBomDevice(groupPosition, childPosition);
+    }
+
+    private void addSeries(int series, int count) {
+        BomService bomService = mRetrofit.create(BomService.class);
+        BomSeriesVo bs = new BomSeriesVo();
+        bs.setBomId(bom.getId());
+        bs.setLoginId(MyApplication.getMyApp().getCallContext().getLoginId());
+        bs.setNum(count);
+        for (DeviceSeries ds :allDeviceSeries) {
+            if (ds.getName().equals(accessoriesList.get(series))) {
+                bs.setSeriesId(ds.getId());
+                break;
+            }
+        }
+        Log.i(TAG, "addSeries " + series + " | " + count);
+        Call<NetResult<String>> call = bomService.addBomSeries(bs);
+
+        call.enqueue(new Callback<NetResult<String>>() {
+            @Override
+            public void onResponse(Call<NetResult<String>> call, Response<NetResult<String>> response) {
+                NetResult<String> result = response.body();
+                if (result == null) {
+                    return;
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(mContext, "成功", Toast.LENGTH_SHORT).show();
+                        mDialog.dismiss();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Call<NetResult<String>> call, Throwable t) {
+                tv_bom_info.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(mContext, "添加时出现问题", Toast.LENGTH_SHORT).show();
+                        Log.i(TAG, "onFailure" + t.toString());
+                        mDialog.dismiss();
+                    }
+                });
+            }
+        });
     }
 
     private void deleteBomDevice(int groupPosition, int childPosition) {
@@ -334,5 +440,15 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                 Log.i(TAG, "onFailure" + t.toString());
             }
         });
+    }
+
+    @Override
+    public void onConfirmClick(View view) {
+
+    }
+
+    @Override
+    public void onModifierClick(View view) {
+
     }
 }

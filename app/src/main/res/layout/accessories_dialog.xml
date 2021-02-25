@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="@dimen/x300"
+    android:layout_height="@dimen/x300"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/edittext_rect_white"
+    android:layout_marginTop="@dimen/x6"
+    >
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="@dimen/x300"
+        android:layout_height="@dimen/x200">
+
+        <TextView
+            android:id="@+id/namelike"
+            android:layout_width="@dimen/x60"
+            android:layout_height="@dimen/x50"
+            android:text="@string/nameLike"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:textSize="@dimen/x18"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintVertical_bias=".1"
+            app:layout_constraintHorizontal_bias=".13"
+            />
+
+        <Spinner
+            android:id="@+id/sp_type"
+            android:layout_width="@dimen/x170"
+            android:layout_height="@dimen/x50"
+            android:gravity="center"
+            android:textSize="@dimen/x18"
+            android:background="@drawable/edittext_rect_little_gray"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@+id/namelike"
+            app:layout_constraintWidth_percent=".55"
+            app:layout_constraintHeight_percent=".08"
+            app:layout_constraintVertical_bias=".1"
+            />
+
+        <TextView
+            android:id="@+id/counts"
+            android:layout_width="@dimen/x60"
+            android:layout_height="@dimen/x50"
+            android:text="@string/size"
+            android:gravity="center"
+            android:textSize="@dimen/x18"
+            android:textStyle="bold"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintWidth_percent=".2"
+            app:layout_constraintHeight_percent=".08"
+            app:layout_constraintVertical_bias=".52"
+            app:layout_constraintHorizontal_bias=".13"
+            />
+
+        <EditText
+            android:id="@+id/et_count"
+            android:layout_width="@dimen/x170"
+            android:layout_height="@dimen/x50"
+            android:gravity="center|left"
+            android:textSize="@dimen/x18"
+            android:digits="1234567890"
+            android:background="@drawable/edittext_rect_little_gray"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@+id/namelike"
+            app:layout_constraintWidth_percent=".6"
+            app:layout_constraintHeight_percent=".08"
+            app:layout_constraintVertical_bias=".52"
+            />
+
+        <TextView
+            android:id="@+id/confirm"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:text="@string/confirm"
+            android:gravity="center"
+            android:textColor="@color/bg_white"
+            android:background="@drawable/edittext_rect_red"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintWidth_percent=".2"
+            app:layout_constraintHeight_percent=".14"
+            app:layout_constraintVertical_bias=".88"
+            app:layout_constraintHorizontal_bias=".5"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>
+

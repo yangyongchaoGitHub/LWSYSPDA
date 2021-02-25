@@ -31,4 +31,8 @@ public class URLs {
 
     //查询设备详细信息
     public static final String deviceInfoUrl = "pda/bom/findDeviceWhenByCode" + postfix;
+
+    //添加配件
+    public static final String addBomSeriesUrl = "pda/bom/addBomSeries" + postfix;
+
 }

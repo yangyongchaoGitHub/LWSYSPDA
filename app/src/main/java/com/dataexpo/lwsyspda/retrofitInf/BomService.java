@@ -3,6 +3,7 @@ package com.dataexpo.lwsyspda.retrofitInf;
 import com.dataexpo.lwsyspda.entity.Bom;
 import com.dataexpo.lwsyspda.entity.BomDeviceVo;
 import com.dataexpo.lwsyspda.entity.BomHouseInfo;
+import com.dataexpo.lwsyspda.entity.BomSeriesVo;
 import com.dataexpo.lwsyspda.entity.Device;
 import com.dataexpo.lwsyspda.entity.DeviceUsingInfo;
 import com.dataexpo.lwsyspda.entity.Login;
@@ -48,4 +49,7 @@ public interface BomService {
 
     @GET(deviceInfoUrl)
     Call<NetResult<List<DeviceUsingInfo>>> getDeviceInfo(@Query("code") String code, @Query("type") Integer type);
+
+    @POST(addBomSeriesUrl)
+    Call<NetResult<String>> addBomSeries(@Body BomSeriesVo bomSeriesVo);
 }
