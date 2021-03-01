@@ -7,6 +7,7 @@ public class BomDeviceVo implements Serializable {
     private Integer bomId;
     private Integer loginId;
     private String bomName;
+    private Integer houseId;
     private List<Device> devices;
 
     public Integer getBomId() {
@@ -39,5 +40,13 @@ public class BomDeviceVo implements Serializable {
 
     public void setBomName(String bomName) {
         this.bomName = bomName;
+    }
+
+    public Integer getHouseId() {
+        return houseId;
+    }
+
+    public void setHouseId(Integer houseId) {
+        this.houseId = houseId;
     }
 }

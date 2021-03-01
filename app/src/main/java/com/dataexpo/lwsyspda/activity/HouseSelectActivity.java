@@ -43,15 +43,15 @@ public class HouseSelectActivity extends BascActivity implements View.OnClickLis
         Intent intent = new Intent(mContext, InboundChoiceActivity.class);
         switch (v.getId()) {
             case R.id.tv_0:
-                intent.putExtra("roomId", 0);
+                intent.putExtra("roomId", 4);
                 break;
 
             case R.id.tv_1:
-                intent.putExtra("roomId", 1);
+                intent.putExtra("roomId", 6);
                 break;
 
             case R.id.tv_2:
-                intent.putExtra("roomId", 2);
+                intent.putExtra("roomId", 5);
                 break;
 
             default:

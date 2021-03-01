@@ -55,4 +55,7 @@ public interface BomService {
 
     @GET(deleteBomSeriesUrl)
     Call<NetResult<String>> deleteBomSeries(@Query("bsId") Integer dsId);
+
+    @POST(addInHomeUrl)
+    Call<NetResult<String>> addInHome(@Body BomDeviceVo bomDeviceVo);
 }

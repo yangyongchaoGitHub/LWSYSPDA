@@ -1,8 +1,8 @@
 package com.dataexpo.lwsyspda.retrofitInf;
 
 public class URLs {
-    public static final String baseUrl = "http://192.168.0.109:8080/LWSYS/";
-    //public static final String baseUrl = "http://lw.expoocr.com/";
+    //public static final String baseUrl = "http://192.168.0.109:8080/LWSYS/";
+    public static final String baseUrl = "http://lw.expoocr.com/";
 
     private static final String postfix = ".do";
 
@@ -37,5 +37,8 @@ public class URLs {
 
     //删除配件
     public static final String deleteBomSeriesUrl = "pda/bom/deleteBomSeries" + postfix;
+
+    //设备入库接口
+    public static final String addInHomeUrl = "pda/bom/addInHome" + postfix;
 
 }
