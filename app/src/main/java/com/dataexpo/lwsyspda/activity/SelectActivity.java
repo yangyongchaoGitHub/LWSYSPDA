@@ -2,6 +2,8 @@ package com.dataexpo.lwsyspda.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -33,6 +35,13 @@ public class SelectActivity extends BascActivity implements View.OnClickListener
         tv_choice.setOnClickListener(this);
         tv_inbound.setOnClickListener(this);
         tv_call_repairs.setOnClickListener(this);
+
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(),0);
+            ((TextView)findViewById(R.id.tv_version_show)).setText("v " + info.versionName);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -44,7 +53,7 @@ public class SelectActivity extends BascActivity implements View.OnClickListener
                 break;
 
             case R.id.tv_model_inbound:
-                startActivity(new Intent(mContext, InboundChoiceActivity.class));
+                startActivity(new Intent(mContext, HouseSelectActivity.class));
                 break;
 
             case R.id.tv_model_call_repairs:

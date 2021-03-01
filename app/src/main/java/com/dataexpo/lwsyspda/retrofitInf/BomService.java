@@ -52,4 +52,7 @@ public interface BomService {
 
     @POST(addBomSeriesUrl)
     Call<NetResult<String>> addBomSeries(@Body BomSeriesVo bomSeriesVo);
+
+    @GET(deleteBomSeriesUrl)
+    Call<NetResult<String>> deleteBomSeries(@Query("bsId") Integer dsId);
 }

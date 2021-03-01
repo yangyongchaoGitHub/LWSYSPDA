@@ -1,6 +1,7 @@
 package com.dataexpo.lwsyspda.activity;
 
 import android.content.Context;
+import android.content.Entity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,11 +30,13 @@ import com.dataexpo.lwsyspda.entity.DeviceSeries;
 import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.entity.PdaBomSeriesVo;
 import com.dataexpo.lwsyspda.listener.DeviceDeleteListener;
+import com.dataexpo.lwsyspda.listener.FittingDeleteListener;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
 import com.dataexpo.lwsyspda.view.AccessoriesDialog;
 import com.dataexpo.lwsyspda.view.RfidDialog;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import retrofit2.Call;
@@ -43,7 +46,7 @@ import retrofit2.Retrofit;
 
 import static com.dataexpo.lwsyspda.retrofitInf.URLs.deleteBomDeviceUrl;
 
-public class BomInfoActivity extends BascActivity implements View.OnClickListener, DeviceDeleteListener, AccessoriesDialog.OnDialogClickListener {
+public class BomInfoActivity extends BascActivity implements View.OnClickListener, DeviceDeleteListener, AccessoriesDialog.OnDialogClickListener, FittingDeleteListener {
     private static final String TAG = BomInfoActivity.class.getSimpleName();
     private Context mContext;
 
@@ -65,6 +68,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
     private ArrayList<BomHouseInfo> gData = new ArrayList<>();
     private ArrayList<ArrayList<Device>> iData = new ArrayList<>();
     private ArrayList<DeviceSeries> allDeviceSeries = new ArrayList<>();
+    private List<BomSeriesVo> bomSeriesVos;
 
     private AccessoriesDialog mDialog;
     private ArrayAdapter<String> spinnerAdapter;
@@ -89,7 +93,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         getBomSerial();
     }
 
-    //获取订单设备
+    //获取所有订单设备
     private void getBomDevice() {
         BomService bomService = mRetrofit.create(BomService.class);
 
@@ -122,63 +126,59 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
 
     //将设备分类到组别
     private void classify(List<Device> data) {
+        iData.clear();
         ArrayList<Device> dAdd;
         int total = 0;
 
-//        for (BomHouseInfo b : gData) {
-//            total += b.getClassNum();
-//            dAdd = new ArrayList<>();
-//
-//            Log.i(TAG, "bhi " + b.getSeries());
-//
-//            for (Device d : data) {
-//                Log.i(TAG, "bhi " + b.getSeries() + " did " + d.getId() + " || " +  d.getSeries());
-//                if (d.getSeries().equals(b.getSeries())) {
-//                    dAdd.add(d);
-//                }
-//            }
-//            iData.add(dAdd);
-//        }
+        for (BomHouseInfo b : gData) {
+            total += b.getClassNum();
+            dAdd = new ArrayList<>();
+
+            Log.i(TAG, "bhi " + b.getSeries());
+
+            for (Device d : data) {
+                Log.i(TAG, "bhi " + b.getSeries() + " did " + d.getId() + " || " + d.getSeries());
+                if (d.getSeries().equals(b.getSeries())) {
+                    dAdd.add(d);
+                }
+            }
+            iData.add(dAdd);
+        }
 
         ArrayList<DeviceSeries> temp = new ArrayList<>(allDeviceSeries);
-
-        for (DeviceSeries ds : temp) {
+        Iterator<DeviceSeries> iterator = temp.iterator();
+        while (iterator.hasNext()) {
+            DeviceSeries ds = iterator.next();
             for (BomHouseInfo b : gData) {
                 if (ds.getId().equals(b.getSeries())) {
                     Log.i(TAG, "classify " + ds.getId() + " | " + b.getSeries());
-                    ds.setbSrc(true);
+                    iterator.remove();
                     break;
                 }
             }
         }
 
-        //if (total - data.size() > 0) {
-            Log.i(TAG, "add new " + total + " | " + data.size());
+        for (DeviceSeries ds : temp) {
+            dAdd = new ArrayList<>();
 
-            for (DeviceSeries ds : allDeviceSeries) {
-                dAdd = new ArrayList<>();
+            Log.i(TAG, "bhi " + ds.getId());
 
-                Log.i(TAG, "bhi " + ds.getId());
-
-                for (Device d : data) {
-                    Log.i(TAG, "bhi " + ds.getId() + " did " + d.getId() + " || " + d.getSeries());
-                    if (d.getSeries().equals(ds.getId())) {
-                        dAdd.add(d);
-                    }
+            for (Device d : data) {
+                Log.i(TAG, "bhi " + ds.getId() + " did " + d.getId() + " || " + d.getSeries());
+                if (d.getSeries().equals(ds.getId())) {
+                    dAdd.add(d);
                 }
-
-                if (dAdd.size() > 0 || ds.isbSrc()) {
-                    iData.add(dAdd);
-                    BomHouseInfo bomHouseInfo = new BomHouseInfo();
-                    bomHouseInfo.setClassName(ds.getName());
-                    bomHouseInfo.setClassNum(dAdd.size());
-                    if (!ds.isbSrc()) {
-                        gData.add(bomHouseInfo);
-                    }
-                }
-                Log.i(TAG, "iData size: " + dAdd.size());
             }
-        //}
+
+            if (dAdd.size() > 0) {
+                iData.add(dAdd);
+                BomHouseInfo bomHouseInfo = new BomHouseInfo();
+                bomHouseInfo.setClassName(ds.getName());
+                bomHouseInfo.setClassNum(dAdd.size());
+                gData.add(bomHouseInfo);
+            }
+            Log.i(TAG, "iData size: " + dAdd.size());
+        }
 
         Log.i(TAG, "classify--- " + iData.size() + " " + gData.size());
 
@@ -188,6 +188,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                 expdAdapter = new BaseExpandableListAdapter(gData, iData, mContext, r_centerView);
                 r_centerView.setAdapter(expdAdapter);
                 expdAdapter.setDeviceDeleteListener(BomInfoActivity.this);
+                expdAdapter.setFittingDeleteListener(BomInfoActivity.this);
 //                expdAdapter.ref(gData, iData);
 //                expdAdapter.refresh(r_centerView, gData);
             }
@@ -222,6 +223,28 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                             }
                             gData = (ArrayList<BomHouseInfo>) bomHouseInfos;
                             allDeviceSeries = (ArrayList<DeviceSeries>) result.getData().getDeviceSeries();
+                            bomSeriesVos = result.getData().getBomSeriesVos();
+                            //直接把配件放到gData
+                            BomHouseInfo bh;
+                            if (bomSeriesVos != null && bomSeriesVos.size() > 0) {
+                                for (BomSeriesVo bs : bomSeriesVos) {
+                                    bh = new BomHouseInfo();
+                                    bh.setId(bs.getId());
+                                    for (DeviceSeries ds : allDeviceSeries) {
+                                        if (ds.getId().equals(bs.getSeriesId())) {
+                                            bh.setClassName(ds.getName());
+                                            bh.setSeries(ds.getId());
+                                        }
+                                    }
+                                    bh.setClassNum(bs.getNum());
+                                    bh.setType(1);
+                                    bh.setBomId(bom.getId());
+
+                                    gData.add(bh);
+                                }
+                            }
+                            Log.i(TAG, "gData " + gData.size());
+
                             tv_bom_info.setText(str);
                             for (DeviceSeries ds: allDeviceSeries) {
                                 if (ds.getType().equals(1)) {
@@ -238,7 +261,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
 
             @Override
             public void onFailure(Call<NetResult<PdaBomSeriesVo>> call, Throwable t) {
-
+                Log.i(TAG, " onFailure " + t.toString());
             }
         });
     }
@@ -386,6 +409,8 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                     public void run() {
                         Toast.makeText(mContext, "成功", Toast.LENGTH_SHORT).show();
                         mDialog.dismiss();
+                        //刷新
+                        getBomDevice();
                     }
                 });
             }
@@ -430,7 +455,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                     @Override
                     public void run() {
                         iData.get(groupPosition).remove(childPosition);
-                        expdAdapter.refresh(r_centerView, gData);
+                        expdAdapter.refresh(gData, iData);
                     }
                 });
             }
@@ -450,5 +475,40 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
     @Override
     public void onModifierClick(View view) {
 
+    }
+
+    @Override
+    public void onDeleteClick(View view, int groupPosition) {
+        Log.i(TAG, gData.get(groupPosition).getId() + " onDeleteClick");
+        deleteBomDeviceSeries(gData.get(groupPosition).getId());
+        gData.remove(groupPosition);
+        iData.remove(groupPosition);
+    }
+
+    private void deleteBomDeviceSeries(int dsId) {
+        BomService bomService = mRetrofit.create(BomService.class);
+
+        Call<NetResult<String>> call = bomService.deleteBomSeries(dsId);
+
+        call.enqueue(new Callback<NetResult<String>>() {
+            @Override
+            public void onResponse(Call<NetResult<String>> call, Response<NetResult<String>> response) {
+                NetResult<String> result = response.body();
+                if (result == null) {
+                    return;
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        initData();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Call<NetResult<String>> call, Throwable t) {
+                Log.i(TAG, "onFailure" + t.toString());
+            }
+        });
     }
 }

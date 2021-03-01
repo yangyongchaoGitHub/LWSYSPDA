@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 public class Device implements Serializable {
-    private Integer id;
+    private Integer id = null;
     //设备系列(0办证机1闸机2配件3打印机4网络设备5其他)
     private Integer series;
     private String seriesName;
@@ -44,6 +44,13 @@ public class Device implements Serializable {
     //设备状态，先根据bom_device的状态查看是否已经入库， 未入库再根据device表的bomid和当前查询项目的bomid比较
     // 0 入库， 1未入库， 2 已调拨， 3非项目
     private Integer status;
+
+    @JsonIgnore
+    private int scanCount;
+
+    //0未发起请求， 1请求中， 2请求返回失败， 3请求返回成功, 4请求返回未找到设备
+    @JsonIgnore
+    private int requestStatus = 0;
 
     public Integer getId() {
         return id;
@@ -157,5 +164,21 @@ public class Device implements Serializable {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public int getScanCount() {
+        return scanCount;
+    }
+
+    public void setScanCount(int scanCount) {
+        this.scanCount = scanCount;
+    }
+
+    public int getRequestStatus() {
+        return requestStatus;
+    }
+
+    public void setRequestStatus(int requestStatus) {
+        this.requestStatus = requestStatus;
     }
 }

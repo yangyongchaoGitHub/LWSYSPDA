@@ -23,6 +23,8 @@ public class BomHouseInfo implements Serializable {
     private Integer loginId;
     //系列类型
     private Integer type;
+
+    private boolean bExpand = false;
     public Integer getId() {
         return id;
     }
@@ -76,5 +78,13 @@ public class BomHouseInfo implements Serializable {
     }
     public void setType(Integer type) {
         this.type = type;
+    }
+
+    public boolean isbExpand() {
+        return bExpand;
+    }
+
+    public void setbExpand(boolean bExpand) {
+        this.bExpand = bExpand;
     }
 }

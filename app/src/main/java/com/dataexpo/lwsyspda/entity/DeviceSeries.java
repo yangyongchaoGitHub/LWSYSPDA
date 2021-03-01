@@ -29,6 +29,7 @@ public class DeviceSeries implements Serializable {
     //每页数量
     private Integer pageSize;
 
+    //不在下单时选的系列，但是却选择了设备，这时要显示，需要添加到gData
     @JsonIgnore
     private boolean bSrc = false;
 

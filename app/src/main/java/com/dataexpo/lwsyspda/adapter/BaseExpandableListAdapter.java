@@ -14,20 +14,15 @@ import android.widget.TextView;
 import com.dataexpo.lwsyspda.R;
 import com.dataexpo.lwsyspda.entity.BomHouseInfo;
 import com.dataexpo.lwsyspda.entity.Device;
-import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.listener.DeviceDeleteListener;
-import com.dataexpo.lwsyspda.retrofitInf.BomService;
+import com.dataexpo.lwsyspda.listener.FittingDeleteListener;
 
 import java.util.ArrayList;
-import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class BaseExpandableListAdapter extends android.widget.BaseExpandableListAdapter {
     private static final String TAG = BaseExpandableListAdapter.class.getName();
     private DeviceDeleteListener deviceDeleteListener;
+    private FittingDeleteListener fittingDeleteListener;
     private ExpandableListView expandableListView;
     private ArrayList<BomHouseInfo> gData;
     private ArrayList<ArrayList<Device>> iData;
@@ -58,18 +53,29 @@ public class BaseExpandableListAdapter extends android.widget.BaseExpandableList
 
     /*供外界更新数据的方法*/
     public void refresh(ExpandableListView mExpandableListView, ArrayList<?> timeList){
-        handler.sendMessage(new Message());
+        //handler.sendMessage(new Message());
         //必须重新伸缩之后才能更新数据
-        for (int i = 0; i < timeList.size(); i++) {
-            mExpandableListView.collapseGroup(i);
-        }
-        for (int i = 0; i < timeList.size(); i++) {
-            mExpandableListView.expandGroup(i);
-        }
+//        for (int i = 0; i < timeList.size(); i++) {
+//            mExpandableListView.collapseGroup(i);
+//        }
+//        for (int i = 0; i < timeList.size(); i++) {
+//            mExpandableListView.expandGroup(i);
+//        }
+        notifyDataSetChanged();
+    }
+
+    public void refresh(ArrayList<BomHouseInfo> gData,ArrayList<ArrayList<Device>> iData) {
+        this.iData = iData;
+        this.gData = gData;
+        notifyDataSetChanged();
     }
 
     public void setDeviceDeleteListener(DeviceDeleteListener deviceDeleteListener) {
         this.deviceDeleteListener = deviceDeleteListener;
+    }
+
+    public void setFittingDeleteListener(FittingDeleteListener fittingDeleteListener) {
+        this.fittingDeleteListener = fittingDeleteListener;
     }
 
     @Override
@@ -120,19 +126,50 @@ public class BaseExpandableListAdapter extends android.widget.BaseExpandableList
             groupHolder.tv_group_name = (TextView) convertView.findViewById(R.id.tv_group_name);
             groupHolder.tv_group_selector = (TextView) convertView.findViewById(R.id.tv_group_selector);
             groupHolder.iv_group_icon = convertView.findViewById(R.id.iv_group_icon);
+            groupHolder.iv_fitting_group_delete = convertView.findViewById(R.id.iv_fitting_group_delete);
+            groupHolder.iv_fitting_count = convertView.findViewById(R.id.iv_fitting_count);
             convertView.setTag(groupHolder);
         } else {
             groupHolder = (ViewHolderGroup) convertView.getTag();
         }
         BomHouseInfo bomHouseInfo = gData.get(groupPosition);
         groupHolder.tv_group_name.setText(bomHouseInfo.getClassName());
-        groupHolder.tv_group_selector.setText(iData.get(groupPosition).size() + "/" + bomHouseInfo.getClassNum());
+
+        Log.i(TAG, "isExpanded" + isExpanded + " isbExpand" + bomHouseInfo.isbExpand());
 
         if (isExpanded) {
             groupHolder.iv_group_icon.setImageResource(R.drawable.expanding_icon);
         } else {
             groupHolder.iv_group_icon.setImageResource(R.drawable.collapsing_icon);
         }
+
+        //配件
+        if (bomHouseInfo.getType() != null && bomHouseInfo.getType().equals(1)) {
+            groupHolder.iv_fitting_group_delete.setVisibility(View.VISIBLE);
+            groupHolder.iv_fitting_count.setVisibility(View.VISIBLE);
+
+            groupHolder.tv_group_selector.setVisibility(View.GONE);
+            groupHolder.iv_group_icon.setVisibility(View.GONE);
+
+            groupHolder.iv_fitting_count.setText(bomHouseInfo.getClassNum() + "");
+            groupHolder.iv_fitting_group_delete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.i("fittingDeleteListener", "onClick " + groupPosition);
+                    if (fittingDeleteListener!= null) {
+                        fittingDeleteListener.onDeleteClick(v, groupPosition);
+                    }
+                }
+            });
+        } else {
+            groupHolder.tv_group_selector.setVisibility(View.VISIBLE);
+            groupHolder.iv_group_icon.setVisibility(View.VISIBLE);
+
+            groupHolder.iv_fitting_group_delete.setVisibility(View.GONE);
+            groupHolder.iv_fitting_count.setVisibility(View.GONE);
+            groupHolder.tv_group_selector.setText(iData.get(groupPosition).size() + "/" + bomHouseInfo.getClassNum());
+        }
+
         Log.i(TAG, "getGroupView: " + groupPosition + " | " + isExpanded);
 
         return convertView;
@@ -188,6 +225,8 @@ public class BaseExpandableListAdapter extends android.widget.BaseExpandableList
         private TextView tv_group_name;
         private TextView tv_group_selector;
         private ImageView iv_group_icon;
+        private TextView iv_fitting_group_delete;
+        private TextView iv_fitting_count;
     }
 
     private static class ViewHolderItem{

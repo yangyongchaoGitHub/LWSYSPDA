@@ -6,6 +6,8 @@ import java.util.List;
 public class PdaBomSeriesVo implements Serializable {
     private List<DeviceSeries> deviceSeries;
     private List<BomHouseInfo> bomHouseInfos;
+    private List<BomSeriesVo> bomSeriesVos;
+
     public List<DeviceSeries> getDeviceSeries() {
         return deviceSeries;
     }
@@ -17,5 +19,13 @@ public class PdaBomSeriesVo implements Serializable {
     }
     public void setBomHouseInfos(List<BomHouseInfo> bomHouseInfos) {
         this.bomHouseInfos = bomHouseInfos;
+    }
+
+    public List<BomSeriesVo> getBomSeriesVos() {
+        return bomSeriesVos;
+    }
+
+    public void setBomSeriesVos(List<BomSeriesVo> bomSeriesVos) {
+        this.bomSeriesVos = bomSeriesVos;
     }
 }

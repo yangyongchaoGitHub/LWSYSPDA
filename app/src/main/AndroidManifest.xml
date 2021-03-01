@@ -62,6 +62,7 @@
         <activity android:name=".activity.InboundChoiceActivity"/>
         <activity android:name=".activity.BomInfoActivity"/>
         <activity android:name=".activity.DeviceInfoActivity"/>
+        <activity android:name=".activity.HouseSelectActivity"/>
     </application>
 
 </manifest>

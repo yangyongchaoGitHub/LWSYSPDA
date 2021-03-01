@@ -6,10 +6,26 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <TextView
+        android:id="@+id/tv_top"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/x45"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintHeight_percent="0.08"
+        android:background="@color/bg_top_blue"
+        android:text="@string/inroom"
+        android:gravity="center"
+        android:textColor="@color/bg_white"
+        android:textSize="@dimen/x20"
+        android:textStyle="bold"
+        />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/top"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/x100"
+        android:layout_height="@dimen/x45"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent">
 
@@ -23,15 +39,6 @@
         </EditText>
 
         <TextView
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:background="@drawable/edittext_rect_green"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.1"
-            app:layout_constraintHeight_percent="0.1"/>
-
-        <TextView
             android:id="@+id/tv_rfid_status"
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -40,6 +47,29 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintWidth_percent="0.1"
             app:layout_constraintHeight_percent="0.1"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bottom"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/x60"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent">
+
+        <TextView
+            android:id="@+id/tv_success"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:text="确认入库"
+            android:gravity="center"
+            android:textColor="@color/bg_white"
+            android:background="@color/bg_top_blue"
+            android:textSize="@dimen/x18"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintWidth_percent="0.99"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
