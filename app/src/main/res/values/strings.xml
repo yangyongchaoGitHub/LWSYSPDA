@@ -42,5 +42,7 @@
     <string name="confirm">确认备货</string>
     <string name="scaning">正在扫描设备</string>
     <string name="inroom">入库</string>
+    <string name="charing">正在充电</string>
+    <string name="charing_full">把枪电池已充满</string>
 
 </resources>

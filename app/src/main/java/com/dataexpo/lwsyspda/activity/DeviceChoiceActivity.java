@@ -29,9 +29,8 @@ import com.dataexpo.lwsyspda.entity.Device;
 import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.entity.RfidEntity;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
-import com.dataexpo.lwsyspda.rfid.EpcData;
-import com.dataexpo.lwsyspda.rfid.EpcUtil;
-import com.dataexpo.lwsyspda.rfid.ReadThread;
+import com.dataexpo.lwsyspda.rfid.BackResult;
+import com.dataexpo.lwsyspda.rfid.GetRFIDThread;
 import com.dataexpo.lwsyspda.view.RfidDialog;
 
 import java.util.ArrayList;
@@ -39,14 +38,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class DeviceChoiceActivity extends BascActivity implements EpcData, OnItemClickListener, View.OnClickListener, RfidDialog.OnDialogClickListener {
+public class DeviceChoiceActivity extends BascActivity implements OnItemClickListener, View.OnClickListener, RfidDialog.OnDialogClickListener, BackResult {
     private static final String TAG = DeviceChoiceActivity.class.getSimpleName();
     private Context mContext;
 
@@ -77,8 +75,6 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
     private Bom bom;
     //扫描的二维码的内容
     private String barCode;
-
-    private EpcUtil mUtil = EpcUtil.getInstance();
 
     //声音池
     private SoundPool soundPool;
@@ -300,86 +296,20 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
     protected void onResume() {
         super.onResume();
         Log.i(TAG, "onResume");
-        mUtil.setEpcData(this);
+        GetRFIDThread.getInstance().setBackResult(this);
 
-        boolean flag = ReadThread.getInstance().isIfInventory();
+        boolean flag = GetRFIDThread.getInstance().isIfPostMsg();
         if (!flag) {
-            tv_rfid_status.setBackgroundResource(mUtil.inventoryStart() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+            MyApplication.getMyApp().getIdataLib().startInventoryTag();
+            GetRFIDThread.getInstance().setIfPostMsg(true);
+            tv_rfid_status.setBackgroundResource(R.drawable.edittext_rect_green);
         }
     }
 
-    @Override
-    public void getEpcData(String[] tagData) {
-        if (tagData != null) {
-            // 卡号
-            String epc = tagData[0];
-            String rssiStr = tagData[2];
-
-            //去掉前面的0
-            while (epc.length() > 0 && epc.startsWith("0")) {
-                epc = epc.substring(1);
-            }
-
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    tv_total.setText("总数:" + rfidLocal.size());
-                    int unkown = 0;
-                    Iterator<Map.Entry<String, RfidEntity>> iterator = rfidLocal.entrySet().iterator();
-                    while (iterator.hasNext()) {
-                        if (iterator.next().getValue().status == 4) {
-                            unkown++;
-                        }
-                    }
-
-                    tv_wait.setText("可选:" + (rfidLocal.size() - unkown));
-                    tv_selected.setText("已备选:" + exists.size());
-                    tv_null.setText("未知:" + unkown);
-                }
-            });
-
-            RfidEntity request = rfidLocal.get(epc);
-
-            //设备已在选择列表中则不再显示
-            for (Device ex: exists) {
-                if (ex.getCode().equals(epc)) {
-                    return;
-                }
-            }
-
-            //扫描到的设备不在已有列表中
-            if (request == null) {
-                request = new RfidEntity();
-                request.rfid = epc;
-                request.rssi = rssiStr;
-                rfidLocal.put(epc, request);
-
-            } else {
-                //设备已经扫描到过
-                if (!rssiStr.equals(request.rssi)) {
-                    //信号强度有变动， 找设备，然后修改，再设置
-                    Iterator<Device> iterator = devices.iterator();
-                    boolean bEexist = false;
-                    while (iterator.hasNext()) {
-                        Device d = iterator.next();
-                        if (epc.equals(d.getRfid())) {
-                            //设备已存在
-                            d.setRfid(rssiStr);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            //未请求和请求失败的，需要进行请求
-            if (request.status == 0 || request.status == 2) {
-                request.status = 1;
-                queryDeviceInfoByRfid(request.rfid);
-            }
-        }
-    }
 
     //  扫码相关-------------------------------------------------------------------------------------------
+
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.i(TAG, "onKeyDown: " + keyCode);
@@ -410,6 +340,11 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
         return super.dispatchKeyEvent(event);
     }
 
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
+    }
+
     private void scanEnd() {
         barCode = et_input.getText().toString().trim();
 
@@ -435,17 +370,19 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
         startTime = System.currentTimeMillis() - tmepTime;
         Log.i(TAG, "startOrStopRFID ");
 
-        boolean flag = ReadThread.getInstance().isIfInventory();
+        boolean flag = GetRFIDThread.getInstance().isIfPostMsg();
         if (flag) {
-            tv_rfid_status.setBackgroundResource(!mUtil.invenrotyStop() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+            MyApplication.getMyApp().getIdataLib().stopInventory();
 
-            //打印日志用
             for (Map.Entry<String, RfidEntity> entry: rfidLocal.entrySet()) {
                 Log.i(TAG, "key" + entry.getKey() + " rssi:" + entry.getValue().rssi + " status:" + entry.getValue().status);
             }
         } else {
-            tv_rfid_status.setBackgroundResource(mUtil.inventoryStart() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+            MyApplication.getMyApp().getIdataLib().startInventoryTag();
         }
+        tv_rfid_status.setBackgroundResource(!flag ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+
+        GetRFIDThread.getInstance().setIfPostMsg(!flag);
     }
 
     @Override
@@ -527,10 +464,13 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
     @Override
     protected void onPause() {
         Log.i(TAG, "onPause ");
-        boolean flag = ReadThread.getInstance().isIfInventory();
+
+        boolean flag = GetRFIDThread.getInstance().isIfPostMsg();
         //关闭rfid
         if (flag) {
-            tv_rfid_status.setBackgroundResource(!mUtil.invenrotyStop() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+            MyApplication.getMyApp().getIdataLib().stopInventory();
+            tv_rfid_status.setBackgroundResource(R.drawable.edittext_rect_red);
+            GetRFIDThread.getInstance().setIfPostMsg(false);
         }
         super.onPause();
     }
@@ -545,5 +485,82 @@ public class DeviceChoiceActivity extends BascActivity implements EpcData, OnIte
     @Override
     public void onModifierClick(View view) {
         mDialog.dismiss();
+    }
+
+    //读卡返回数据回调
+    @Override
+    public void postResult(String[] tagData) {
+        if (tagData != null) {
+            // 卡号
+            String epc = tagData[1];
+            String rssiStr = tagData[2];
+
+            //去掉前面的0
+            while (epc.length() > 0 && epc.startsWith("0")) {
+                epc = epc.substring(1);
+            }
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    tv_total.setText("总数:" + rfidLocal.size());
+                    int unkown = 0;
+                    Iterator<Map.Entry<String, RfidEntity>> iterator = rfidLocal.entrySet().iterator();
+                    while (iterator.hasNext()) {
+                        if (iterator.next().getValue().status == 4) {
+                            unkown++;
+                        }
+                    }
+
+                    tv_wait.setText("可选:" + (rfidLocal.size() - unkown));
+                    tv_selected.setText("已备选:" + exists.size());
+                    tv_null.setText("未知:" + unkown);
+                }
+            });
+
+            RfidEntity request = rfidLocal.get(epc);
+
+            //设备已在选择列表中则不再显示
+            for (Device ex: exists) {
+                if (ex.getCode().equals(epc)) {
+                    return;
+                }
+            }
+
+            //扫描到的设备不在已有列表中
+            if (request == null) {
+                request = new RfidEntity();
+                request.rfid = epc;
+                request.rssi = rssiStr;
+                rfidLocal.put(epc, request);
+
+            } else {
+                //设备已经扫描到过
+                if (!rssiStr.equals(request.rssi)) {
+                    //信号强度有变动， 找设备，然后修改，再设置
+                    Iterator<Device> iterator = devices.iterator();
+                    boolean bEexist = false;
+                    while (iterator.hasNext()) {
+                        Device d = iterator.next();
+                        if (epc.equals(d.getRfid())) {
+                            //设备已存在
+                            d.setRfid(rssiStr);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            //未请求和请求失败的，需要进行请求
+            if (request.status == 0 || request.status == 2) {
+                request.status = 1;
+                queryDeviceInfoByRfid(request.rfid);
+            }
+        }
+    }
+
+    @Override
+    public void postInventoryRate(long rate) {
+
     }
 }

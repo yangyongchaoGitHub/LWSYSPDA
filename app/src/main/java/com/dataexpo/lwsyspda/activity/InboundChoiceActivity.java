@@ -23,9 +23,8 @@ import com.dataexpo.lwsyspda.entity.Device;
 import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.entity.RfidEntity;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
-import com.dataexpo.lwsyspda.rfid.EpcData;
-import com.dataexpo.lwsyspda.rfid.EpcUtil;
-import com.dataexpo.lwsyspda.rfid.ReadThread;
+import com.dataexpo.lwsyspda.rfid.BackResult;
+import com.dataexpo.lwsyspda.rfid.GetRFIDThread;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +37,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class InboundChoiceActivity extends BascActivity implements EpcData, OnItemClickListener, View.OnClickListener {
+public class InboundChoiceActivity extends BascActivity implements OnItemClickListener, View.OnClickListener, BackResult {
     private static final String TAG = InboundChoiceActivity.class.getSimpleName();
     private Context mContext;
     Retrofit mRetrofit;
@@ -49,8 +48,6 @@ public class InboundChoiceActivity extends BascActivity implements EpcData, OnIt
 
     private RecyclerView r_centerView;
     private DeviceChoiceAdapter adapter;
-
-    private EpcUtil mUtil = EpcUtil.getInstance();
 
     private List<Device> devices = new ArrayList<>();
 
@@ -104,80 +101,45 @@ public class InboundChoiceActivity extends BascActivity implements EpcData, OnIt
 
     //开启或停止RFID模块
     public void startOrStopRFID() {
-        boolean flag = ReadThread.getInstance().isIfInventory();
-        if (flag) {
-            tv_rfid_status.setBackgroundResource(!mUtil.invenrotyStop() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+        Log.i(TAG, "startOrStopRFID ");
 
+        boolean flag = GetRFIDThread.getInstance().isIfPostMsg();
+        if (flag) {
+            MyApplication.getMyApp().getIdataLib().stopInventory();
         } else {
-            tv_rfid_status.setBackgroundResource(mUtil.inventoryStart() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+            MyApplication.getMyApp().getIdataLib().startInventoryTag();
         }
+        tv_rfid_status.setBackgroundResource(!flag ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+
+        GetRFIDThread.getInstance().setIfPostMsg(!flag);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mUtil.setEpcData(this);
+        GetRFIDThread.getInstance().setBackResult(this);
+        boolean flag = GetRFIDThread.getInstance().isIfPostMsg();
 
-        boolean flag = ReadThread.getInstance().isIfInventory();
+        //未开启则开启
         if (!flag) {
-            tv_rfid_status.setBackgroundResource(mUtil.inventoryStart() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+            MyApplication.getMyApp().getIdataLib().startInventoryTag();
+            tv_rfid_status.setBackgroundResource(R.drawable.edittext_rect_green);
+            GetRFIDThread.getInstance().setIfPostMsg(true);
         }
     }
 
     @Override
     protected void onPause() {
         Log.i(TAG, "onPause ");
-        boolean flag = ReadThread.getInstance().isIfInventory();
+        boolean flag = GetRFIDThread.getInstance().isIfPostMsg();
         //关闭rfid
         if (flag) {
-            tv_rfid_status.setBackgroundResource(!mUtil.invenrotyStop() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+            MyApplication.getMyApp().getIdataLib().stopInventory();
+            tv_rfid_status.setBackgroundResource(R.drawable.edittext_rect_red);
+            GetRFIDThread.getInstance().setIfPostMsg(false);
         }
+
         super.onPause();
-    }
-
-    @Override
-    public void getEpcData(String[] tagData) {
-        if (tagData != null) {
-            // 卡号
-            String epc = tagData[0];
-            String rssiStr = tagData[2];
-
-            //去掉前面的0
-            while (epc.length() > 0 && epc.startsWith("0")) {
-                epc = epc.substring(1);
-            }
-
-            Device device = new Device();
-            //查找是否已存在
-            for (Device d: devices) {
-                if (d.getCode().equals(epc)) {
-                    d.setScanCount(d.getScanCount() + 1);
-                    device = d;
-                    break;
-                }
-            }
-
-            if (device.getCode() == null) {
-                device.setScanCount(1);
-                device.setCode(epc);
-
-                devices.add(device);
-                //去查找服务器
-            }
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    adapter.notifyDataSetChanged();
-                }
-            });
-
-            if (device.getRequestStatus() == 0 || device.getRequestStatus() == 2) {
-                device.setRequestStatus(1);
-                queryDeviceInfoByRfid(epc);
-            }
-
-            Log.i(TAG, "scan Value!!!" + epc);
-        }
     }
 
     @Override
@@ -320,5 +282,55 @@ public class InboundChoiceActivity extends BascActivity implements EpcData, OnIt
                 Log.i(TAG, "onFailure" + t.toString());
             }
         });
+    }
+
+    @Override
+    public void postResult(String[] tagData) {
+        if (tagData != null) {
+            // 卡号
+            String epc = tagData[1];
+            String rssiStr = tagData[2];
+
+            //去掉前面的0
+            while (epc.length() > 0 && epc.startsWith("0")) {
+                epc = epc.substring(1);
+            }
+
+            Device device = new Device();
+            //查找是否已存在
+            for (Device d: devices) {
+                if (d.getCode().equals(epc)) {
+                    d.setScanCount(d.getScanCount() + 1);
+                    device = d;
+                    break;
+                }
+            }
+
+            if (device.getCode() == null) {
+                device.setScanCount(1);
+                device.setCode(epc);
+
+                devices.add(device);
+                //去查找服务器
+            }
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    adapter.notifyDataSetChanged();
+                }
+            });
+
+            if (device.getRequestStatus() == 0 || device.getRequestStatus() == 2) {
+                device.setRequestStatus(1);
+                queryDeviceInfoByRfid(epc);
+            }
+
+            Log.i(TAG, "scan Value!!!" + epc + " " + rssiStr);
+        }
+    }
+
+    @Override
+    public void postInventoryRate(long rate) {
+
     }
 }
