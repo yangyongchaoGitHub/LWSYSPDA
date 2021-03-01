@@ -252,36 +252,36 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
         }
 
         bomDeviceVo.setDevices(devices);
-        Call<NetResult<String>> call = bomService.addDeviceInBom(bomDeviceVo);
-
-        call.enqueue(new Callback<NetResult<String>>() {
-            @Override
-            public void onResponse(Call<NetResult<String>> call, Response<NetResult<String>> response) {
-                NetResult<String> result = response.body();
-                if (result == null) {
-                    return;
-                }
-
-                Log.i(TAG, "device name: " + result.getData() + " " + result.getErrcode());
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (result.getErrcode() == -1) {
-                            Toast.makeText(mContext, "添加失败", Toast.LENGTH_SHORT).show();
-
-                        } else {
-                            //添加成功关闭界面
-                            InboundChoiceActivity.this.finish();
-                        }
-                    }
-                });
-            }
-
-            @Override
-            public void onFailure(Call<NetResult<String>> call, Throwable t) {
-                Log.i(TAG, "onFailure" + t.toString());
-            }
-        });
+//        Call<NetResult<String>> call = bomService.a(bomDeviceVo);
+//
+//        call.enqueue(new Callback<NetResult<String>>() {
+//            @Override
+//            public void onResponse(Call<NetResult<String>> call, Response<NetResult<String>> response) {
+//                NetResult<String> result = response.body();
+//                if (result == null) {
+//                    return;
+//                }
+//
+//                Log.i(TAG, "device name: " + result.getData() + " " + result.getErrcode());
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        if (result.getErrcode() == -1) {
+//                            Toast.makeText(mContext, "添加失败", Toast.LENGTH_SHORT).show();
+//
+//                        } else {
+//                            //添加成功关闭界面
+//                            InboundChoiceActivity.this.finish();
+//                        }
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public void onFailure(Call<NetResult<String>> call, Throwable t) {
+//                Log.i(TAG, "onFailure" + t.toString());
+//            }
+//        });
     }
 
     @Override

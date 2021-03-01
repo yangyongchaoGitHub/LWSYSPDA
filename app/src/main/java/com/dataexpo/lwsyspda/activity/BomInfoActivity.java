@@ -307,7 +307,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                 intent.putExtras(bundle);
                 startActivity(intent);
 
-                Toast.makeText(mContext, "你点击了child：" + groupPosition + " " + childPosition + " | " + v.toString(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(mContext, "你点击了child：" + groupPosition + " " + childPosition + " | " + v.toString(), Toast.LENGTH_SHORT).show();
                 return true;
             }
         });
@@ -434,6 +434,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         BomDeviceVo bomDeviceVo = new BomDeviceVo();
         bomDeviceVo.setLoginId(MyApplication.getMyApp().getCallContext().getLoginId());
         bomDeviceVo.setBomId(bom.getId());
+        bomDeviceVo.setBomName(bom.getName());
         List<Device> devices = new ArrayList<>();
         devices.add(iData.get(groupPosition).get(childPosition));
 

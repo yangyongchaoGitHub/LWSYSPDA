@@ -6,6 +6,7 @@ import java.util.List;
 public class BomDeviceVo implements Serializable {
     private Integer bomId;
     private Integer loginId;
+    private String bomName;
     private List<Device> devices;
 
     public Integer getBomId() {
@@ -30,5 +31,13 @@ public class BomDeviceVo implements Serializable {
 
     public void setLoginId(Integer loginId) {
         this.loginId = loginId;
+    }
+
+    public String getBomName() {
+        return bomName;
+    }
+
+    public void setBomName(String bomName) {
+        this.bomName = bomName;
     }
 }

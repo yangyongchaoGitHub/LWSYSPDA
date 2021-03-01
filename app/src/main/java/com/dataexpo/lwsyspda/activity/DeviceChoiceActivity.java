@@ -421,6 +421,7 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
         Log.i(TAG, "queryDeviceInfo " + wait_devicemap.size());
         BomDeviceVo bomDeviceVo = new BomDeviceVo();
         bomDeviceVo.setBomId(bom.getId());
+        bomDeviceVo.setBomName(bom.getName());
         bomDeviceVo.setLoginId(MyApplication.getMyApp().getCallContext().getLoginId());
         Iterator<Map.Entry<String, Device>> iterator = wait_devicemap.entrySet().iterator();
         List<Device> devices = new ArrayList<>();
@@ -457,6 +458,7 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
             @Override
             public void onFailure(Call<NetResult<String>> call, Throwable t) {
                 Log.i(TAG, "onFailure" + t.toString());
+                Toast.makeText(mContext, "添加失败", Toast.LENGTH_SHORT).show();
             }
         });
     }
