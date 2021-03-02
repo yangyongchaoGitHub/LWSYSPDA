@@ -240,20 +240,24 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
     }
 
     private void addInRoom() {
-        BomService bomService = mRetrofit.create(BomService.class);
-
-        BomDeviceVo bomDeviceVo = new BomDeviceVo();
-        bomDeviceVo.setLoginId(MyApplication.getMyApp().getCallContext().getLoginId());
-
+        Log.i(TAG, "add in room");
         Iterator<Device> iterator = devices.iterator();
         List<Device> devices = new ArrayList<>();
 
         while (iterator.hasNext()) {
             Device device = iterator.next();
             if (device.isbAddWait()) {
-                devices.add(iterator.next());
+                devices.add(device);
             }
         }
+        if (devices.size() == 0) {
+            return;
+        }
+
+        BomService bomService = mRetrofit.create(BomService.class);
+
+        BomDeviceVo bomDeviceVo = new BomDeviceVo();
+        bomDeviceVo.setLoginId(MyApplication.getMyApp().getCallContext().getLoginId());
 
         bomDeviceVo.setDevices(devices);
         Call<NetResult<String>> call = bomService.addInHome(bomDeviceVo);

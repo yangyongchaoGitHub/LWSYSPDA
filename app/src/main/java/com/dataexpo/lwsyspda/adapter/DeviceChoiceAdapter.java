@@ -25,9 +25,11 @@ public class DeviceChoiceAdapter extends BaseQuickAdapter<Device, BaseViewHolder
                 .setText(R.id.tv_series_name, item.getName())
                 .setText(R.id.tv_room_remark, "备注：" + item.getRemark())
                 .setText(R.id.tv_device_rssi, item.getRssi())
-                .setText(R.id.tv_room_status, item.getHouseType().equals(0) ? "在仓" : "出仓")
-                .setText(R.id.tv_device_status, item.getRepairType().equals(0) ? "正常" :
-                        (item.getRepairType().equals(0) ? "待维修" : "返厂"))
+                .setText(R.id.tv_room_status, item.getHouseType() == null ? "未知" :
+                        (item.getHouseType().equals(0) ? "在仓" : "出仓"))
+                .setText(R.id.tv_device_status, item.getHouseType() == null ? "未知" :
+                        (item.getRepairType().equals(0) ? "正常" :
+                        (item.getRepairType().equals(0) ? "待维修" : "返厂")))
                 .setText(R.id.tv_series_scan_count, item.getScanCount() + "");
         if (item.isbAddWait()) {
             baseViewHolder.findView(R.id.iv_selector).setBackgroundResource(R.drawable.select_slod_blue);

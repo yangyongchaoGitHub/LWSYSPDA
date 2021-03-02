@@ -44,8 +44,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-import static com.dataexpo.lwsyspda.retrofitInf.URLs.deleteBomDeviceUrl;
-
 public class BomInfoActivity extends BascActivity implements View.OnClickListener, DeviceDeleteListener, AccessoriesDialog.OnDialogClickListener, FittingDeleteListener {
     private static final String TAG = BomInfoActivity.class.getSimpleName();
     private Context mContext;
