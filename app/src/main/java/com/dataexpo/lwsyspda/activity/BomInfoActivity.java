@@ -109,21 +109,28 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        devices.clear();
                         devices = (ArrayList<Device>) result.getData();
-                        classify(result.getData());
+                        classify();
                     }
                 });
             }
 
             @Override
             public void onFailure(Call<NetResult<List<Device>>> call, Throwable t) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(mContext, "接口访问失败，请检查网络或联系服务器管理员", Toast.LENGTH_SHORT).show();
+                    }
+                });
                 Log.i(TAG, "onFailure" + t.toString());
             }
         });
     }
 
     //将设备分类到组别
-    private void classify(List<Device> data) {
+    private void classify() {
         iData.clear();
         ArrayList<Device> dAdd;
         int total = 0;
@@ -134,7 +141,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
 
             Log.i(TAG, "bhi " + b.getSeries());
 
-            for (Device d : data) {
+            for (Device d : devices) {
                 Log.i(TAG, "bhi " + b.getSeries() + " did " + d.getId() + " || " + d.getSeries());
                 if (d.getSeries().equals(b.getSeries())) {
                     dAdd.add(d);
@@ -161,7 +168,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
 
             Log.i(TAG, "bhi " + ds.getId());
 
-            for (Device d : data) {
+            for (Device d : devices) {
                 Log.i(TAG, "bhi " + ds.getId() + " did " + d.getId() + " || " + d.getSeries());
                 if (d.getSeries().equals(ds.getId())) {
                     dAdd.add(d);
@@ -204,14 +211,12 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
             @Override
             public void onResponse(Call<NetResult<PdaBomSeriesVo>> call, Response<NetResult<PdaBomSeriesVo>> response) {
                 NetResult<PdaBomSeriesVo> result = response.body();
-                if (result == null) {
-                    return;
-                }
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (result.getErrcode() == -1) {
+                        if (result == null || result.getErrcode() == -1) {
+                            Toast.makeText(mContext, "返回数据异常！", Toast.LENGTH_SHORT).show();
                         } else {
                             //显示
                             List<BomHouseInfo> bomHouseInfos = result.getData().getBomHouseInfos();
@@ -244,6 +249,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                             Log.i(TAG, "gData " + gData.size());
 
                             tv_bom_info.setText(str);
+                            accessoriesList.clear();
                             for (DeviceSeries ds: allDeviceSeries) {
                                 if (ds.getType().equals(1)) {
                                     //配件
@@ -259,6 +265,12 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
 
             @Override
             public void onFailure(Call<NetResult<PdaBomSeriesVo>> call, Throwable t) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(mContext, "接口访问失败，请检查网络或联系服务器管理员", Toast.LENGTH_SHORT).show();
+                    }
+                });
                 Log.i(TAG, " onFailure " + t.toString());
             }
         });
@@ -324,7 +336,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         switch (v.getId()) {
             case R.id.confirm:
                 Log.i(TAG, "confirm " + mDialog.et_count.getText().toString() + " | " + mDialog.sp_type.getSelectedItemPosition());
-                if (mDialog.et_count.getText().toString() == null || mDialog.et_count.getText().toString().equals("")) {
+                if (mDialog.et_count.getText().toString().equals("")) {
                     Toast.makeText(mContext, "请输入数量", Toast.LENGTH_SHORT).show();
                 } else {
                     addSeries(mDialog.sp_type.getSelectedItemPosition(), Integer.parseInt(mDialog.et_count.getText().toString()));
@@ -415,7 +427,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
 
             @Override
             public void onFailure(Call<NetResult<String>> call, Throwable t) {
-                tv_bom_info.post(new Runnable() {
+                runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         Toast.makeText(mContext, "添加时出现问题", Toast.LENGTH_SHORT).show();

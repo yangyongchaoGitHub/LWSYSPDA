@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -173,7 +174,13 @@ public class DeviceInfoActivity extends BascActivity implements OnItemClickListe
 
             @Override
             public void onFailure(Call<NetResult<List<DeviceUsingInfo>>> call, Throwable t) {
-                Log.i(TAG, "onFailure" + t.toString());
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(mContext, "添加时出现问题", Toast.LENGTH_SHORT).show();
+                        Log.i(TAG, "onFailure" + t.toString());
+                    }
+                });
             }
         });
     }

@@ -2,33 +2,23 @@ package com.dataexpo.lwsyspda.activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dataexpo.lwsyspda.MyApplication;
 import com.dataexpo.lwsyspda.R;
 import com.dataexpo.lwsyspda.adapter.ChoiceListAdapter;
-import com.dataexpo.lwsyspda.adapter.holders.ChoiceListHolder;
 import com.dataexpo.lwsyspda.entity.Bom;
-import com.dataexpo.lwsyspda.entity.Login;
 import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.listener.OnItemClickListener;
-import com.dataexpo.lwsyspda.retrofitInf.ApiService;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -125,6 +115,12 @@ public class BomChoiceActivity extends BascActivity implements OnItemClickListen
                 if (!currCall.equals(call.hashCode() + "")) {
                     return;
                 }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(mContext, "获取数据失败,请检查网络或服务器数据异常",Toast.LENGTH_SHORT).show();
+                    }
+                });
                 Log.i(TAG, "onFailure" + t.toString());
             }
         });

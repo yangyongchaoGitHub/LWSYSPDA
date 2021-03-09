@@ -40,7 +40,8 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation files('libs\\RFIDJar_V1.3.4.jar')
+    implementation files('libs\\SerialPort.jar')
+    implementation files('libs\\uhfcom13_v15.jar')
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
@@ -49,7 +50,4 @@ dependencies {
     compile group: 'com.squareup.retrofit2', name: 'converter-jackson', version: '2.9.0'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:3.0.4'
-//    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.1'
-//    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.12.1'
-//    compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.12.1'
 }

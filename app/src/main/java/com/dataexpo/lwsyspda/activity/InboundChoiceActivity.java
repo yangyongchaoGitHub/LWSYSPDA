@@ -24,7 +24,7 @@ import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.entity.RfidEntity;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
 import com.dataexpo.lwsyspda.rfid.BackResult;
-import com.dataexpo.lwsyspda.rfid.GetRFIDThread;
+import com.dataexpo.lwsyspda.rfid.InventoryThread;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -103,42 +103,37 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
     public void startOrStopRFID() {
         Log.i(TAG, "startOrStopRFID ");
 
-        boolean flag = GetRFIDThread.getInstance().isIfPostMsg();
-        if (flag) {
-            MyApplication.getMyApp().getIdataLib().stopInventory();
-        } else {
-            MyApplication.getMyApp().getIdataLib().startInventoryTag();
-        }
-        tv_rfid_status.setBackgroundResource(!flag ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+        if (InventoryThread.getInstance().isGoToRead()) {
+            InventoryThread.getInstance().setGoToRead(false);
 
-        GetRFIDThread.getInstance().setIfPostMsg(!flag);
+        } else {
+            InventoryThread.getInstance().setGoToRead(true);
+        }
+        tv_rfid_status.setBackgroundResource(InventoryThread.getInstance().isGoToRead() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        GetRFIDThread.getInstance().setBackResult(this);
-        boolean flag = GetRFIDThread.getInstance().isIfPostMsg();
 
-        //未开启则开启
-        if (!flag) {
-            MyApplication.getMyApp().getIdataLib().startInventoryTag();
+        InventoryThread.getInstance().setBr(this);
+
+        if (!InventoryThread.getInstance().isGoToRead()) {
+            //开启读卡模块
+            InventoryThread.getInstance().setGoToRead(true);
             tv_rfid_status.setBackgroundResource(R.drawable.edittext_rect_green);
-            GetRFIDThread.getInstance().setIfPostMsg(true);
         }
     }
 
     @Override
     protected void onPause() {
         Log.i(TAG, "onPause ");
-        boolean flag = GetRFIDThread.getInstance().isIfPostMsg();
-        //关闭rfid
-        if (flag) {
-            MyApplication.getMyApp().getIdataLib().stopInventory();
-            tv_rfid_status.setBackgroundResource(R.drawable.edittext_rect_red);
-            GetRFIDThread.getInstance().setIfPostMsg(false);
-        }
 
+        //关闭rfid
+        if (InventoryThread.getInstance().isGoToRead()) {
+            InventoryThread.getInstance().setGoToRead(false);
+            tv_rfid_status.setBackgroundResource(R.drawable.edittext_rect_red);
+        }
         super.onPause();
     }
 
@@ -288,16 +283,21 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
             @Override
             public void onFailure(Call<NetResult<String>> call, Throwable t) {
                 Log.i(TAG, "onFailure" + t.toString());
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(mContext, "添加失败,请检查网络或服务器数据异常",Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
     }
 
+
     @Override
-    public void postResult(String[] tagData) {
-        if (tagData != null) {
-            // 卡号
-            String epc = tagData[1];
-            String rssiStr = tagData[2];
+    public void postResult(String epc, byte rssi) {
+        if (!"".equals(epc)) {
+            String rssiStr = rssi + "";
 
             //去掉前面的0
             while (epc.length() > 0 && epc.startsWith("0")) {
@@ -335,10 +335,5 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
 
             Log.i(TAG, "scan Value!!!" + epc + " " + rssiStr);
         }
-    }
-
-    @Override
-    public void postInventoryRate(long rate) {
-
     }
 }

@@ -1,4 +1,4 @@
-package com.dataexpo.lwsyspda.rfid;
+package com.dataexpo.lwsyspda.common;
 
 import android.app.ProgressDialog;
 import android.content.Context;

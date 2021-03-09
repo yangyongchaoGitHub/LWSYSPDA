@@ -11,6 +11,8 @@ public class BomHouseInfo implements Serializable {
     private Integer bomId;
     //仓库主键
     private Integer houseId;
+    //系列名称
+    private String seriesName;
     //设备名称
     private String className;
     //需求设备数量
@@ -86,5 +88,13 @@ public class BomHouseInfo implements Serializable {
 
     public void setbExpand(boolean bExpand) {
         this.bExpand = bExpand;
+    }
+
+    public String getSeriesName() {
+        return seriesName;
+    }
+
+    public void setSeriesName(String seriesName) {
+        this.seriesName = seriesName;
     }
 }

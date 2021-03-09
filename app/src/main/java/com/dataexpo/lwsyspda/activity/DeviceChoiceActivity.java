@@ -1,6 +1,9 @@
 package com.dataexpo.lwsyspda.activity;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Bundle;
@@ -30,7 +33,7 @@ import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.entity.RfidEntity;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
 import com.dataexpo.lwsyspda.rfid.BackResult;
-import com.dataexpo.lwsyspda.rfid.GetRFIDThread;
+import com.dataexpo.lwsyspda.rfid.InventoryThread;
 import com.dataexpo.lwsyspda.view.RfidDialog;
 
 import java.util.ArrayList;
@@ -296,20 +299,18 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
     protected void onResume() {
         super.onResume();
         Log.i(TAG, "onResume");
-        GetRFIDThread.getInstance().setBackResult(this);
+        InventoryThread.getInstance().setBr(this);
+        registerReceiver();
 
-        boolean flag = GetRFIDThread.getInstance().isIfPostMsg();
-        if (!flag) {
-            MyApplication.getMyApp().getIdataLib().startInventoryTag();
-            GetRFIDThread.getInstance().setIfPostMsg(true);
+        if (!InventoryThread.getInstance().isGoToRead()) {
+            //开启读卡模块
+            InventoryThread.getInstance().setGoToRead(true);
             tv_rfid_status.setBackgroundResource(R.drawable.edittext_rect_green);
         }
     }
 
 
     //  扫码相关-------------------------------------------------------------------------------------------
-
-
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.i(TAG, "onKeyDown: " + keyCode);
@@ -370,19 +371,17 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
         startTime = System.currentTimeMillis() - tmepTime;
         Log.i(TAG, "startOrStopRFID ");
 
-        boolean flag = GetRFIDThread.getInstance().isIfPostMsg();
-        if (flag) {
-            MyApplication.getMyApp().getIdataLib().stopInventory();
+        if (InventoryThread.getInstance().isGoToRead()) {
+            InventoryThread.getInstance().setGoToRead(false);
 
             for (Map.Entry<String, RfidEntity> entry: rfidLocal.entrySet()) {
                 Log.i(TAG, "key" + entry.getKey() + " rssi:" + entry.getValue().rssi + " status:" + entry.getValue().status);
             }
         } else {
-            MyApplication.getMyApp().getIdataLib().startInventoryTag();
+            InventoryThread.getInstance().setGoToRead(true);
         }
-        tv_rfid_status.setBackgroundResource(!flag ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
+        tv_rfid_status.setBackgroundResource(InventoryThread.getInstance().isGoToRead() ? R.drawable.edittext_rect_green : R.drawable.edittext_rect_red);
 
-        GetRFIDThread.getInstance().setIfPostMsg(!flag);
     }
 
     @Override
@@ -446,7 +445,6 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
                     public void run() {
                         if (result.getErrcode() == -1) {
                             Toast.makeText(mContext, "添加失败", Toast.LENGTH_SHORT).show();
-
                         } else {
                             //添加成功关闭界面
                             DeviceChoiceActivity.this.finish();
@@ -458,7 +456,12 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
             @Override
             public void onFailure(Call<NetResult<String>> call, Throwable t) {
                 Log.i(TAG, "onFailure" + t.toString());
-                Toast.makeText(mContext, "添加失败", Toast.LENGTH_SHORT).show();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(mContext, "添加失败", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
     }
@@ -467,12 +470,10 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
     protected void onPause() {
         Log.i(TAG, "onPause ");
 
-        boolean flag = GetRFIDThread.getInstance().isIfPostMsg();
         //关闭rfid
-        if (flag) {
-            MyApplication.getMyApp().getIdataLib().stopInventory();
+        if (InventoryThread.getInstance().isGoToRead()) {
+            InventoryThread.getInstance().setGoToRead(false);
             tv_rfid_status.setBackgroundResource(R.drawable.edittext_rect_red);
-            GetRFIDThread.getInstance().setIfPostMsg(false);
         }
         super.onPause();
     }
@@ -491,12 +492,9 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
 
     //读卡返回数据回调
     @Override
-    public void postResult(String[] tagData) {
-        if (tagData != null) {
-            // 卡号
-            String epc = tagData[1];
-            String rssiStr = tagData[2];
-
+    public void postResult(String epc, byte rssi) {
+        if (!"".equals(epc)) {
+            String rssiStr = rssi + "";
             //去掉前面的0
             while (epc.length() > 0 && epc.startsWith("0")) {
                 epc = epc.substring(1);
@@ -562,7 +560,54 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
     }
 
     @Override
-    public void postInventoryRate(long rate) {
+    protected void onDestroy() {
+        unregisterReceiver();
+        super.onDestroy();
+    }
 
+    private KeyReceiver keyReceiver;
+
+    private void registerReceiver() {
+        keyReceiver = new KeyReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.rfid.FUN_KEY");
+        filter.addAction("android.intent.action.FUN_KEY");
+        registerReceiver(keyReceiver, filter);
+    }
+
+    private void unregisterReceiver() {
+        unregisterReceiver(keyReceiver);
+    }
+
+    private class KeyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int keyCode = intent.getIntExtra("keyCode", 0);
+            Log.i(TAG, "key " + keyCode);
+            if (keyCode == 0) {
+                keyCode = intent.getIntExtra("keycode", 0);
+            }
+            boolean keyDown = intent.getBooleanExtra("keydown", false);
+            if (keyDown) {
+//                if (toast == null) {
+//                    toast = Toast.makeText(mContext, "KeyReceiver:keyCode = down" + keyCode, Toast.LENGTH_SHORT);
+//                } else {
+//                    toast.setText("KeyReceiver:keyCode = down" + keyCode);
+//                }
+//                toast.show();
+                switch (keyCode) {
+                    case KeyEvent.KEYCODE_F1:
+                    case KeyEvent.KEYCODE_F2:
+                    case KeyEvent.KEYCODE_F3:
+                    case KeyEvent.KEYCODE_F4:
+                    case KeyEvent.KEYCODE_F5:
+                    case KeyEvent.KEYCODE_F6:
+                    case KeyEvent.KEYCODE_F7:
+                        startOrStopRFID();
+                        //onClick(buttonStart);
+                        break;
+                }
+            }
+        }
     }
 }

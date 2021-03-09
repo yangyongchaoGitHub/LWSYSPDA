@@ -1,7 +1,7 @@
 package com.dataexpo.lwsyspda.retrofitInf;
 
 public class URLs {
-    public static final String baseUrl = "http://192.168.0.108:8080/LWSYS/";
+    public static final String baseUrl = "http://192.168.0.111:8080/LWSYS/";
     //public static final String baseUrl = "http://lw.expoocr.com/";
 
     private static final String postfix = ".do";
@@ -20,6 +20,7 @@ public class URLs {
 
     // 通过设备的code查询设备详情
     public static final String bomFindDeviceInfoUrl = "pda/bom/findDeviceInfoByCode" + postfix;
+
     // 通过设备rfid编码查看设备详情
     public static final String bomFindDeviceInfoByRfidUrl = "pda/bom/findDeviceInfoByRfid" + postfix;
 

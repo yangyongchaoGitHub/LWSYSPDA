@@ -2,15 +2,14 @@ package com.dataexpo.lwsyspda;
 
 import android.app.Application;
 import android.content.Context;
-import android.util.Log;
 
+import com.android.hdhe.uhf.reader.UhfReader;
 import com.dataexpo.lwsyspda.entity.CallContext;
 import com.dataexpo.lwsyspda.retrofitInf.URLs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.concurrent.Executors;
 
-import realid.rfidlib.MyLib;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
@@ -20,41 +19,28 @@ public class MyApplication extends Application {
     private static Retrofit mRetrofit;
     private static MyApplication myApp;
 
-    public static byte[] UHF = {0x01, 0x02, 0x03};
-    private MyLib idataLib;
-
-//    private Reader mReader;
-//    private JniModuleAPI jniModuleAPI;
-
-    public static boolean ifOpenSound = false; //是否启动盘点声音
-
-//    public static boolean ifOpenQuickInventoryMode;//是否开启快速盘点功能
-//    public static boolean ifOpenSoundInventoryMode;//是否开启盘点播放声音的功能
-//    public static boolean poweronStatus; //上电状态
-//    public static boolean selectShowData; //false为EPC，true为TID
-//    public static String currentDeviceName = "";
-
     CallContext callContext = null;
+    private UhfReader manager; // UHF manager,UHF Operating handle
+    //是否支持扫描卡 | 串口连接是否成功
+    private boolean bSupport = true;
 
     @Override
     public void onCreate() {
         super.onCreate();
         myApp = this;
-        //currentDeviceName = (String) MUtil.getInstance().getSystemProp(MConstant.DeviceCode);//获取设备编号
         context = getApplicationContext();
         createRetrofit();
-//        mReader = new Reader();
-//        jniModuleAPI = new JniModuleAPI();
-//        initOperate();
-        idataLib = new MyLib(this);
+        manager = UhfReader.getInstance();
+        if (manager == null) {
+            bSupport = false;
+            return;
+        }
     }
+
     public static MyApplication getMyApp() {
         return myApp;
     }
 
-    public MyLib getIdataLib() {
-        return idataLib;
-    }
 
     public static Context getContext() {
         return context;
@@ -78,5 +64,21 @@ public class MyApplication extends Application {
 
     public void setCallContext(CallContext callContext) {
         this.callContext = callContext;
+    }
+
+    public UhfReader getManager() {
+        return manager;
+    }
+
+    public void setManager(UhfReader manager) {
+        this.manager = manager;
+    }
+
+    public boolean isbSupport() {
+        return bSupport;
+    }
+
+    public void setbSupport(boolean bSupport) {
+        this.bSupport = bSupport;
     }
 }
