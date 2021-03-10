@@ -20,8 +20,10 @@
     <color name="font_green">#54D18C</color>
     <color name="font_red">#F97676</color>
     <color name="font_org">#FFC893</color>
+    <color name="dark_org">#FFA552</color>
     <color name="font_blue1">#6D91FB</color>
     <color name="font_gray1">#F8F9FF</color>
+    <color name="dark_red">#FF5454</color>
 
 
 </resources>

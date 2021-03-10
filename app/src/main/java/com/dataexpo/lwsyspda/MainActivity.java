@@ -25,6 +25,7 @@ import com.dataexpo.lwsyspda.entity.Login;
 import com.dataexpo.lwsyspda.entity.NetResult;
 import com.dataexpo.lwsyspda.retrofitInf.ApiService;
 import com.dataexpo.lwsyspda.rfid.InventoryThread;
+import com.dataexpo.lwsyspda.rfid.scan.ScanThread;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -43,9 +44,6 @@ public class MainActivity extends BascActivity implements View.OnClickListener {
     private EditText et_login_name;
     private EditText et_login_pswd;
     private TextView tv_login;
-
-    private Timer mTimer = null;
-    private TimerTask mTimerTask = null;
 
     private boolean ifRequesetPermission = true;
     private final int requestPermissionCode = 10;
@@ -97,6 +95,8 @@ public class MainActivity extends BascActivity implements View.OnClickListener {
             e.printStackTrace();
         }
         InventoryThread.getInstance().start();
+        ScanThread.getInstance().start();
+
         //registerReceiver();
         //设置最大功率
         MyApplication.getMyApp().getManager().setOutputPower(26);
@@ -121,7 +121,7 @@ public class MainActivity extends BascActivity implements View.OnClickListener {
         //这里强制停止盘点，无论是否使用
         InventoryThread.getInstance().setRuning(false);
 
-        InventoryThread.getInstance().destroy();
+        //InventoryThread.getInstance().destroy();
         exit(0);
     }
 

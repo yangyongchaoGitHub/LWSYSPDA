@@ -23,7 +23,7 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintWidth_percent="0.3"
+            app:layout_constraintWidth_percent="0.26"
             app:layout_constraintHeight_percent="0.3"
             app:layout_constraintVertical_bias="0.15"
             app:layout_constraintHorizontal_bias="0.12"
@@ -76,12 +76,13 @@
             android:layout_height="0dp"
             android:text="@string/choicedevice"
             android:gravity="center"
-            android:background="@drawable/edittext_rect_white_frame"
-            android:textSize="@dimen/x13"
+            android:textColor="@color/bg_white"
+            android:background="@drawable/edittext_rect_dark_org"
+            android:textSize="@dimen/x16"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintWidth_percent="0.5"/>
+            app:layout_constraintWidth_percent="0.33"/>
 
         <TextView
             android:id="@+id/tv_choice_parts"
@@ -89,12 +90,27 @@
             android:layout_height="0dp"
             android:text="@string/choiceparts"
             android:gravity="center"
-            android:background="@drawable/edittext_rect_white_frame"
-            android:textSize="@dimen/x13"
+            android:background="@drawable/edittext_rect_dark_blue"
+            android:textSize="@dimen/x16"
+            android:textColor="@color/bg_white"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toRightOf="@+id/tv_choice_device"
-            app:layout_constraintWidth_percent="0.5"/>
+            app:layout_constraintWidth_percent="0.33"/>
+
+        <TextView
+            android:id="@+id/tv_back"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:text="返回"
+            android:gravity="center"
+            android:textColor="@color/bg_white"
+            android:background="@drawable/edittext_rect_dark_red"
+            android:textSize="@dimen/x16"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@+id/tv_choice_parts"
+            app:layout_constraintWidth_percent="0.33"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ExpandableListView

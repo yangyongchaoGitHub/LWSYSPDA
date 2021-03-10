@@ -14,7 +14,6 @@ import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class MyApplication extends Application {
-
     private static Context context;
     private static Retrofit mRetrofit;
     private static MyApplication myApp;

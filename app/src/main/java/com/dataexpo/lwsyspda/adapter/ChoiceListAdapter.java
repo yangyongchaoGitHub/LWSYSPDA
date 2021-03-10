@@ -82,17 +82,20 @@ public class ChoiceListAdapter extends RecyclerView.Adapter<ChoiceListHolder> im
         }
 
         if (bom.getStatus().equals(0)) {
-            holder.tv_bom_status.setText("未选设备");
+            holder.tv_bom_status.setText("未选系列");
             holder.tv_bom_status.setTextColor(mContext.getResources().getColor(R.color.font_blue));
         } else if (bom.getStatus().equals(1)) {
-            holder.tv_bom_status.setText("未备货");
+            holder.tv_bom_status.setText("待备货");
             holder.tv_bom_status.setTextColor(mContext.getResources().getColor(R.color.font_org));
         } else if (bom.getStatus().equals(2)) {
-            holder.tv_bom_status.setText("已备货");
+            holder.tv_bom_status.setText("已修改");
             holder.tv_bom_status.setTextColor(mContext.getResources().getColor(R.color.font_green));
         } else if (bom.getStatus().equals(3)) {
-            holder.tv_bom_status.setText("已修改");
+            holder.tv_bom_status.setText("已选设备");
             holder.tv_bom_status.setTextColor(mContext.getResources().getColor(R.color.font_red));
+        } else if (bom.getStatus().equals(4)) {
+            holder.tv_bom_status.setText("已完成");
+            holder.tv_bom_status.setTextColor(mContext.getResources().getColor(R.color.font_blue1));
         }
 
         holder.root.setOnClickListener(new View.OnClickListener() {

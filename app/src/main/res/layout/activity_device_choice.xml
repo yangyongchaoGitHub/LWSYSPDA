@@ -6,6 +6,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/top"
         android:layout_width="match_parent"
@@ -21,53 +22,77 @@
             app:layout_constraintLeft_toLeftOf="parent">
         </EditText>
 
+<!--        <TextView-->
+<!--            android:id="@+id/tv_total"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="0dp"-->
+<!--            android:text="@string/scaning"-->
+<!--            android:gravity="center"-->
+<!--            app:layout_constraintTop_toTopOf="parent"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintLeft_toLeftOf="parent"-->
+<!--            app:layout_constraintWidth_percent="0.24"-->
+<!--            />-->
+
+<!--        <TextView-->
+<!--            android:id="@+id/tv_wait"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="0dp"-->
+<!--            android:text="@string/scaning"-->
+<!--            android:gravity="center"-->
+<!--            app:layout_constraintTop_toTopOf="parent"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintLeft_toRightOf="@+id/tv_total"-->
+<!--            app:layout_constraintWidth_percent="0.24"-->
+<!--            />-->
+
+<!--        <TextView-->
+<!--            android:id="@+id/tv_selected"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="0dp"-->
+<!--            android:text="@string/scaning"-->
+<!--            android:gravity="center"-->
+<!--            app:layout_constraintTop_toTopOf="parent"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintLeft_toRightOf="@+id/tv_wait"-->
+<!--            app:layout_constraintWidth_percent="0.24"-->
+<!--            />-->
+
+<!--        <TextView-->
+<!--            android:id="@+id/tv_null"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="0dp"-->
+<!--            android:text="@string/scaning"-->
+<!--            android:gravity="center"-->
+<!--            app:layout_constraintTop_toTopOf="parent"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintLeft_toRightOf="@+id/tv_selected"-->
+<!--            app:layout_constraintWidth_percent="0.24"-->
+<!--            />-->
+
         <TextView
-            android:id="@+id/tv_total"
+            android:id="@+id/title"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:text="@string/scaning"
             android:gravity="center"
-            app:layout_constraintTop_toTopOf="parent"
+            android:text="感应到的设备"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintWidth_percent="0.24"
-            />
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_percent="0.4" />
 
         <TextView
-            android:id="@+id/tv_wait"
+            android:id="@+id/all"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:text="@string/scaning"
             android:gravity="center"
-            app:layout_constraintTop_toTopOf="parent"
+            android:text="全选"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toRightOf="@+id/tv_total"
-            app:layout_constraintWidth_percent="0.24"
-            />
-
-        <TextView
-            android:id="@+id/tv_selected"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:text="@string/scaning"
-            android:gravity="center"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toRightOf="@+id/tv_wait"
-            app:layout_constraintWidth_percent="0.24"
-            />
-
-        <TextView
-            android:id="@+id/tv_null"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:text="@string/scaning"
-            android:gravity="center"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toRightOf="@+id/tv_selected"
-            app:layout_constraintWidth_percent="0.24"
-            />
+            app:layout_constraintWidth_percent="0.3" />
 
         <TextView
             android:id="@+id/tv_rfid_status"
@@ -79,6 +104,33 @@
             app:layout_constraintWidth_percent="0.1"
             app:layout_constraintHeight_percent="0.1"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/tv_top"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/x45"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintHeight_percent="0.08"
+        android:background="@color/bg_top_blue"
+        android:text="@string/inroom"
+        android:gravity="center"
+        android:textColor="@color/bg_white"
+        android:textSize="@dimen/x20"
+        android:textStyle="bold"
+        />
+
+    <TextView
+        android:id="@+id/all"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/x45"
+        android:gravity="center"
+        android:text="全选"
+        android:textColor="@color/bg_white"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.2" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottom"
@@ -93,8 +145,9 @@
             android:layout_height="0dp"
             android:text="确认添加"
             android:gravity="center"
-            android:background="@drawable/edittext_rect_white"
-            android:textSize="@dimen/x13"
+            android:textColor="@color/bg_white"
+            android:background="@drawable/edittext_rect_dark_org"
+            android:textSize="@dimen/x16"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"

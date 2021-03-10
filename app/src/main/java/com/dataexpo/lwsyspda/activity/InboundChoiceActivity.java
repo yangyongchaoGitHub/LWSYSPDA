@@ -1,6 +1,9 @@
 package com.dataexpo.lwsyspda.activity;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -50,6 +53,7 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
     private DeviceChoiceAdapter adapter;
 
     private List<Device> devices = new ArrayList<>();
+    private List<Device> exist = new ArrayList<>();
 
     private int roomId = 0;
 
@@ -115,7 +119,7 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
     @Override
     protected void onResume() {
         super.onResume();
-
+        registerReceiver();
         InventoryThread.getInstance().setBr(this);
 
         if (!InventoryThread.getInstance().isGoToRead()) {
@@ -156,7 +160,6 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
 
         Call<NetResult<Device>> call = bomService.queryDeviceInfo(rfid);
 
-        Log.i(TAG, " call: " + call.hashCode());
         calls.put(call.hashCode() + "", rfid);
 
         call.enqueue(new Callback<NetResult<Device>>() {
@@ -183,7 +186,7 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
                             }
                         }
                         if (result.getErrcode() == -1) {
-                            Toast.makeText(mContext, "存在找不到的标签", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(mContext, "存在标签未绑定设备", Toast.LENGTH_SHORT).show();
                             if (requestDevice != null) {
                                 requestDevice.setRequestStatus(4);
                             }
@@ -191,14 +194,21 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
                             Log.i(TAG, "device name: " + result.getData().getName() + " id " + result.getData().getId());
                             Device device = result.getData();
                             if (requestDevice != null) {
-                                device.setRssi(requestDevice.getRssi());
-                                device.setRequestStatus(3);
-                                device.setScanCount(1);
+                                //设备出仓状态
                                 devices.remove(requestDevice);
-                                devices.add(device);
+
+                                Log.i(TAG, "houseType: " + device.getHouseType() + " | " + exist.size() + " " + device.getCode());
+                                if (device.getHouseType().equals(1)) {
+                                    device.setRssi(requestDevice.getRssi());
+                                    device.setRequestStatus(3);
+                                    device.setScanCount(1);
+                                    devices.add(device);
+
+                                } else {
+                                    exist.add(requestDevice);
+                                }
                                 adapter.notifyDataSetChanged();
                             }
-
                             //addShowDevice(result.getData(), false);
                         }
                     }
@@ -219,6 +229,12 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
                 if (requestDevice != null) {
                     requestDevice.setRequestStatus(2);
                 }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(mContext, "获取数据失败,请检查网络或服务器数据异常",Toast.LENGTH_SHORT).show();
+                    }
+                });
                 Log.i(TAG, "onFailure " + t.toString());
             }
         });
@@ -270,9 +286,10 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
                     @Override
                     public void run() {
                         if (result.getErrcode() == -1) {
-                            Toast.makeText(mContext, "添加失败", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(mContext, "入库失败", Toast.LENGTH_SHORT).show();
 
                         } else {
+                            Toast.makeText(mContext, "操作成功", Toast.LENGTH_SHORT).show();
                             //添加成功关闭界面
                             InboundChoiceActivity.this.finish();
                         }
@@ -286,7 +303,7 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(mContext, "添加失败,请检查网络或服务器数据异常",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mContext, "入库失败,请检查网络或服务器数据异常",Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -304,6 +321,11 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
                 epc = epc.substring(1);
             }
 
+            for (Device d : exist) {
+                if (d.getCode().equals(epc)) {
+                    return;
+                }
+            }
             Device device = new Device();
             //查找是否已存在
             for (Device d: devices) {
@@ -334,6 +356,58 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
             }
 
             Log.i(TAG, "scan Value!!!" + epc + " " + rssiStr);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver();
+        super.onDestroy();
+    }
+
+    private KeyReceiver keyReceiver;
+
+    private void registerReceiver() {
+        keyReceiver = new KeyReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.rfid.FUN_KEY");
+        filter.addAction("android.intent.action.FUN_KEY");
+        registerReceiver(keyReceiver, filter);
+    }
+
+    private void unregisterReceiver() {
+        unregisterReceiver(keyReceiver);
+    }
+
+    private class KeyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int keyCode = intent.getIntExtra("keyCode", 0);
+            Log.i(TAG, "key " + keyCode);
+            if (keyCode == 0) {
+                keyCode = intent.getIntExtra("keycode", 0);
+            }
+            boolean keyDown = intent.getBooleanExtra("keydown", false);
+            if (keyDown) {
+//                if (toast == null) {
+//                    toast = Toast.makeText(mContext, "KeyReceiver:keyCode = down" + keyCode, Toast.LENGTH_SHORT);
+//                } else {
+//                    toast.setText("KeyReceiver:keyCode = down" + keyCode);
+//                }
+//                toast.show();
+                switch (keyCode) {
+                    case KeyEvent.KEYCODE_F1:
+                    case KeyEvent.KEYCODE_F2:
+                    case KeyEvent.KEYCODE_F3:
+                    case KeyEvent.KEYCODE_F4:
+                    case KeyEvent.KEYCODE_F5:
+                    case KeyEvent.KEYCODE_F6:
+                    case KeyEvent.KEYCODE_F7:
+                        startOrStopRFID();
+                        //onClick(buttonStart);
+                        break;
+                }
+            }
         }
     }
 }

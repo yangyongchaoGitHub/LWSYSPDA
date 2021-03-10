@@ -13,7 +13,6 @@ public class InventoryThread extends Thread {
     private boolean goToRead = false;
     BackResult br = null;
 
-    //伪单例
     private InventoryThread() {
     }
 

@@ -38,6 +38,7 @@ import com.dataexpo.lwsyspda.view.RfidDialog;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -52,6 +53,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
     private TextView tv_bom_info;
     private TextView tv_choice_device;
     private TextView tv_choice_parts;
+    private TextView tv_back;
 
     private ExpandableListView r_centerView;
     //private DeviceChoiceAdapter adapter;
@@ -61,12 +63,12 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
 
     private Bom bom;
 
-    private ArrayList<Device> devices = new ArrayList<>();
+    private CopyOnWriteArrayList<Device> devices = new CopyOnWriteArrayList<>();
 
-    private ArrayList<BomHouseInfo> gData = new ArrayList<>();
-    private ArrayList<ArrayList<Device>> iData = new ArrayList<>();
-    private ArrayList<DeviceSeries> allDeviceSeries = new ArrayList<>();
-    private List<BomSeriesVo> bomSeriesVos;
+    private CopyOnWriteArrayList<BomHouseInfo> gData = new CopyOnWriteArrayList<>();
+    private CopyOnWriteArrayList<CopyOnWriteArrayList<Device>> iData = new CopyOnWriteArrayList<>();
+    private CopyOnWriteArrayList<DeviceSeries> allDeviceSeries = new CopyOnWriteArrayList<>();
+    private List<BomSeriesVo> bomSeriesVos = new CopyOnWriteArrayList<>();
 
     private AccessoriesDialog mDialog;
     private ArrayAdapter<String> spinnerAdapter;
@@ -110,7 +112,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                     @Override
                     public void run() {
                         devices.clear();
-                        devices = (ArrayList<Device>) result.getData();
+                        devices.addAll(result.getData());
                         classify();
                     }
                 });
@@ -132,12 +134,12 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
     //将设备分类到组别
     private void classify() {
         iData.clear();
-        ArrayList<Device> dAdd;
+        CopyOnWriteArrayList<Device> dAdd;
         int total = 0;
 
         for (BomHouseInfo b : gData) {
             total += b.getClassNum();
-            dAdd = new ArrayList<>();
+            dAdd = new CopyOnWriteArrayList<>();
 
             Log.i(TAG, "bhi " + b.getSeries());
 
@@ -164,7 +166,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         }
 
         for (DeviceSeries ds : temp) {
-            dAdd = new ArrayList<>();
+            dAdd = new CopyOnWriteArrayList<>();
 
             Log.i(TAG, "bhi " + ds.getId());
 
@@ -224,9 +226,13 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                             for(BomHouseInfo b : bomHouseInfos) {
                                 str.append(b.getClassName()).append(" * ").append(b.getClassNum()).append("、");
                             }
-                            gData = (ArrayList<BomHouseInfo>) bomHouseInfos;
-                            allDeviceSeries = (ArrayList<DeviceSeries>) result.getData().getDeviceSeries();
-                            bomSeriesVos = result.getData().getBomSeriesVos();
+                            gData.clear();
+                            gData.addAll(bomHouseInfos);
+                            allDeviceSeries.clear();
+                            allDeviceSeries.addAll(result.getData().getDeviceSeries());
+                            bomSeriesVos.clear();
+                            bomSeriesVos.addAll(result.getData().getBomSeriesVos());
+
                             //直接把配件放到gData
                             BomHouseInfo bh;
                             if (bomSeriesVos != null && bomSeriesVos.size() > 0) {
@@ -285,6 +291,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         tv_bom_info = findViewById(R.id.tv_bom_info);
         tv_choice_device = findViewById(R.id.tv_choice_device);
         tv_choice_parts = findViewById(R.id.tv_choice_parts);
+        tv_back = findViewById(R.id.tv_back);
 
         //设置值
         tv_bom_name_value.setText(bom.getName());
@@ -292,6 +299,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
 
         tv_choice_device.setOnClickListener(this);
         tv_choice_parts.setOnClickListener(this);
+        tv_back.setOnClickListener(this);
         //更换自定义图标
         //r_centerView.setGroupIndicator(this.getResources().getDrawable(R.drawable.expandablelistviewselector));
 //        r_centerView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
@@ -334,6 +342,10 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.tv_back:
+                this.finish();
+                break;
+
             case R.id.confirm:
                 Log.i(TAG, "confirm " + mDialog.et_count.getText().toString() + " | " + mDialog.sp_type.getSelectedItemPosition());
                 if (mDialog.et_count.getText().toString().equals("")) {
@@ -344,6 +356,11 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                 break;
 
             case R.id.tv_choice_parts:
+                //检查是否过期
+                if (bom.getEndDate().getTime() < System.currentTimeMillis() || bom.getStatus().equals(4)) {
+                    Toast.makeText(mContext, "已过期，不能修改", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 mDialog.show();
                 Log.i(TAG, "show mDialog " + mDialog.sp_type);
                 if (mDialog.sp_type != null && mDialog.initend == false) {
@@ -368,6 +385,12 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                 break;
 
             case R.id.tv_choice_device:
+                //检查过期
+                if (bom.getEndDate().getTime() < System.currentTimeMillis() || bom.getStatus().equals(4)) {
+                    Toast.makeText(mContext, "已过期，不能修改", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 Intent intent = new Intent(mContext, DeviceChoiceActivity.class);
                 Bundle bundle = new Bundle();
                 //传递name参数为tinyphp
@@ -441,17 +464,20 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
 
     private void deleteBomDevice(int groupPosition, int childPosition) {
         BomService bomService = mRetrofit.create(BomService.class);
+        List<Device> dDevices = new ArrayList<>();
         BomDeviceVo bomDeviceVo = new BomDeviceVo();
+
         bomDeviceVo.setLoginId(MyApplication.getMyApp().getCallContext().getLoginId());
         bomDeviceVo.setBomId(bom.getId());
         bomDeviceVo.setBomName(bom.getName());
-        List<Device> devices = new ArrayList<>();
-        devices.add(iData.get(groupPosition).get(childPosition));
+
+
+        dDevices.add(iData.get(groupPosition).get(childPosition));
 
         Log.i(TAG, "deleteBomDevice" + iData.get(groupPosition).get(childPosition).getId() + " " +
                 iData.get(groupPosition).get(childPosition).getBomId() + " " +
                 iData.get(groupPosition).get(childPosition).getCode());
-        bomDeviceVo.setDevices(devices);
+        bomDeviceVo.setDevices(dDevices);
 
         Call<NetResult<String>> call = bomService.deleteBomDevice(bomDeviceVo);
 
@@ -465,7 +491,15 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        iData.get(groupPosition).remove(childPosition);
+                        Device dd = iData.get(groupPosition).remove(childPosition);
+                        //从devices 也删除
+                        Iterator<Device> i = devices.iterator();
+                        while (i.hasNext()) {
+                            Device d = i.next();
+                            if (d.getId().equals(dd.getId())) {
+                                devices.remove(d);
+                            }
+                        }
                         expdAdapter.refresh(gData, iData);
                     }
                 });

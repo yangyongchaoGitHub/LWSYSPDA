@@ -48,7 +48,7 @@ public class Device implements Serializable {
     @JsonIgnore
     private int scanCount;
 
-    //0未发起请求， 1请求中， 2请求返回失败， 3请求返回成功, 4请求返回未找到设备
+    //0未发起请求， 1请求中， 2请求返回失败， 3请求返回成功, 4请求返回未找到设备， 5已经入库（仅在入库界面使用）
     @JsonIgnore
     private int requestStatus = 0;
 

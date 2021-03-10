@@ -58,13 +58,34 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.SelectActivity"/>
-        <activity android:name=".activity.BomChoiceActivity"/>
-        <activity android:name=".activity.DeviceChoiceActivity"/>
-        <activity android:name=".activity.InboundChoiceActivity"/>
-        <activity android:name=".activity.BomInfoActivity"/>
-        <activity android:name=".activity.DeviceInfoActivity"/>
-        <activity android:name=".activity.HouseSelectActivity"/>
+        <activity android:name=".activity.SelectActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan|stateHidden"
+            android:configChanges="keyboardHidden"/>
+        <activity android:name=".activity.BomChoiceActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan|stateHidden"
+            android:configChanges="keyboardHidden"/>
+        <activity android:name=".activity.DeviceChoiceActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan|stateHidden"
+            android:configChanges="keyboardHidden"/>
+        <activity android:name=".activity.InboundChoiceActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan|stateHidden"
+            android:configChanges="keyboardHidden"/>
+        <activity android:name=".activity.BomInfoActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan|stateHidden"
+            android:configChanges="keyboardHidden"/>
+        <activity android:name=".activity.DeviceInfoActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan|stateHidden"
+            android:configChanges="keyboardHidden"/>
+        <activity android:name=".activity.HouseSelectActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan|stateHidden"
+            android:configChanges="keyboardHidden"/>
     </application>
 
 </manifest>

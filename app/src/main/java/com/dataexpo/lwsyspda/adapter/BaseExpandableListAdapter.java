@@ -18,19 +18,20 @@ import com.dataexpo.lwsyspda.listener.DeviceDeleteListener;
 import com.dataexpo.lwsyspda.listener.FittingDeleteListener;
 
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class BaseExpandableListAdapter extends android.widget.BaseExpandableListAdapter {
     private static final String TAG = BaseExpandableListAdapter.class.getName();
     private DeviceDeleteListener deviceDeleteListener;
     private FittingDeleteListener fittingDeleteListener;
     private ExpandableListView expandableListView;
-    private ArrayList<BomHouseInfo> gData;
-    private ArrayList<ArrayList<Device>> iData;
+    private CopyOnWriteArrayList<BomHouseInfo> gData;
+    private CopyOnWriteArrayList<CopyOnWriteArrayList<Device>> iData;
     private Context mContext;
     Handler handler;
 
 
-    public BaseExpandableListAdapter(ArrayList<BomHouseInfo> gData,ArrayList<ArrayList<Device>> iData, Context mContext,
+    public BaseExpandableListAdapter(CopyOnWriteArrayList<BomHouseInfo> gData,CopyOnWriteArrayList<CopyOnWriteArrayList<Device>> iData, Context mContext,
                                      ExpandableListView expandableListView) {
         this.expandableListView = expandableListView;
         this.gData = gData;
@@ -46,13 +47,13 @@ public class BaseExpandableListAdapter extends android.widget.BaseExpandableList
         };
     }
 
-    public void ref(ArrayList<BomHouseInfo> timeList, ArrayList<ArrayList<Device>> mSystemMsgInfos){
+    public void ref(CopyOnWriteArrayList<BomHouseInfo> timeList, CopyOnWriteArrayList<CopyOnWriteArrayList<Device>> mSystemMsgInfos){
         gData = timeList;
         iData = mSystemMsgInfos;
     }
 
     /*供外界更新数据的方法*/
-    public void refresh(ExpandableListView mExpandableListView, ArrayList<?> timeList){
+    public void refresh(ExpandableListView mExpandableListView, CopyOnWriteArrayList<?> timeList){
         //handler.sendMessage(new Message());
         //必须重新伸缩之后才能更新数据
 //        for (int i = 0; i < timeList.size(); i++) {
@@ -64,7 +65,7 @@ public class BaseExpandableListAdapter extends android.widget.BaseExpandableList
         notifyDataSetChanged();
     }
 
-    public void refresh(ArrayList<BomHouseInfo> gData,ArrayList<ArrayList<Device>> iData) {
+    public void refresh(CopyOnWriteArrayList<BomHouseInfo> gData,CopyOnWriteArrayList<CopyOnWriteArrayList<Device>> iData) {
         this.iData = iData;
         this.gData = gData;
         notifyDataSetChanged();
@@ -195,6 +196,7 @@ public class BaseExpandableListAdapter extends android.widget.BaseExpandableList
         Device device = iData.get(groupPosition).get(childPosition);
         itemHolder.tv_number.setText(childPosition + "");
         itemHolder.tv_name.setText(device.getName());
+        //维修状态显示
         if (device.getRepairType().equals(0)) {
             itemHolder.tv_serial.setTextColor(mContext.getResources().getColor(R.color.bg_black));
         } else {

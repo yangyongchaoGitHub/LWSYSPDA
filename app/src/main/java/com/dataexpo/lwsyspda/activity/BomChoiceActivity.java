@@ -60,7 +60,8 @@ public class BomChoiceActivity extends BascActivity implements OnItemClickListen
 
         adapter.setItemClickListener(this);
         getBomList(null, 1);
-
+        tv_0.setBackgroundResource(R.drawable.edittext_rect_dark_blue);
+        tv_0.setTextColor(mContext.getResources().getColor(R.color.bg_white));
         type = 0;
     }
 
@@ -68,13 +69,9 @@ public class BomChoiceActivity extends BascActivity implements OnItemClickListen
         tv_0.setBackgroundResource(R.drawable.edittext_rect_gray);
         tv_1.setBackgroundResource(R.drawable.edittext_rect_gray);
         tv_2.setBackgroundResource(R.drawable.edittext_rect_gray);
-        if (type == 0) {
-            tv_0.setBackgroundResource(R.drawable.edittext_rect_white);
-        } else if (type == 1) {
-            tv_1.setBackgroundResource(R.drawable.edittext_rect_white);
-        } else {
-            tv_2.setBackgroundResource(R.drawable.edittext_rect_white);
-        }
+        tv_0.setTextColor(mContext.getResources().getColor(R.color.bg_black));
+        tv_1.setTextColor(mContext.getResources().getColor(R.color.bg_black));
+        tv_2.setTextColor(mContext.getResources().getColor(R.color.bg_black));
 
         BomService bomService = mRetrofit.create(BomService.class);
 
@@ -166,23 +163,29 @@ public class BomChoiceActivity extends BascActivity implements OnItemClickListen
             case R.id.tv_0:
                 //type = 0;
                 getBomList(null, 1);
-                tv_0.setBackgroundResource(R.drawable.edittext_rect_white);
-                tv_1.setBackground(null);
-                tv_2.setBackground(null);
+                tv_0.setBackgroundResource(R.drawable.edittext_rect_dark_blue);
+                tv_0.setTextColor(mContext.getResources().getColor(R.color.bg_white));
+//                tv_0.setBackgroundResource(R.drawable.edittext_rect_white);
+//                tv_1.setBackground(null);
+//                tv_2.setBackground(null);
                 break;
             case R.id.tv_1:
                 //type = 1;
                 getBomList(null, 0);
-                tv_1.setBackgroundResource(R.drawable.edittext_rect_white);
-                tv_0.setBackground(null);
-                tv_2.setBackground(null);
+                tv_1.setBackgroundResource(R.drawable.edittext_rect_dark_blue);
+                tv_1.setTextColor(mContext.getResources().getColor(R.color.bg_white));
+//                tv_1.setBackgroundResource(R.drawable.edittext_rect_white);
+//                tv_0.setBackground(null);
+//                tv_2.setBackground(null);
                 break;
             case R.id.tv_2:
                 //type = 2;
                 getBomList(MyApplication.getMyApp().getCallContext().getLoginId(), null);
-                tv_2.setBackgroundResource(R.drawable.edittext_rect_white);
-                tv_1.setBackground(null);
-                tv_0.setBackground(null);
+                tv_2.setBackgroundResource(R.drawable.edittext_rect_dark_blue);
+                tv_2.setTextColor(mContext.getResources().getColor(R.color.bg_white));
+//                tv_2.setBackgroundResource(R.drawable.edittext_rect_white);
+//                tv_1.setBackground(null);
+//                tv_0.setBackground(null);
                 break;
             default:
         }

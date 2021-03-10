@@ -55,10 +55,10 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
     private TextView tv_rfid_status;
     private TextView tv_success;
 
-    private TextView tv_total;
-    private TextView tv_wait;
-    private TextView tv_selected;
-    private TextView tv_null;
+//    private TextView tv_total;
+//    private TextView tv_wait;
+//    private TextView tv_selected;
+//    private TextView tv_null;
 
     private RecyclerView r_centerView;
 
@@ -78,6 +78,9 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
     private Bom bom;
     //扫描的二维码的内容
     private String barCode;
+
+    //全选按钮
+    boolean bAll = false;
 
     //声音池
     private SoundPool soundPool;
@@ -105,33 +108,6 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
     }
 
     private void initData() {
-//        BomService bomService = mRetrofit.create(BomService.class);
-//
-//        Call<NetResult<List<Device>>> call = bomService.getBomDevice(bom.getId());
-//
-//        call.enqueue(new Callback<NetResult<List<Device>>>() {
-//            @Override
-//            public void onResponse(Call<NetResult<List<Device>>> call, Response<NetResult<List<Device>>> response) {
-//                NetResult<List<Device>> result = response.body();
-//                if (result == null) {
-//                    return;
-//                }
-//                Log.i(TAG, "onResponse" + result.getErrmsg() + " ! " +
-//                        result.getErrcode() + " " + result.getData().size());
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        adapter.addData(result.getData());
-//                        adapter.notifyDataSetChanged();
-//                    }
-//                });
-//            }
-//
-//            @Override
-//            public void onFailure(Call<NetResult<List<Device>>> call, Throwable t) {
-//                Log.i(TAG, "onFailure" + t.toString());
-//            }
-//        });
     }
 
     private void queryDeviceInfo() {
@@ -263,13 +239,14 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
         tv_success = findViewById(R.id.tv_success);
         tv_success.setOnClickListener(this);
 
-        tv_total = findViewById(R.id.tv_total);
-        tv_wait = findViewById(R.id.tv_wait);
-        tv_selected = findViewById(R.id.tv_selected);
-        tv_null = findViewById(R.id.tv_null);
+//        tv_total = findViewById(R.id.tv_total);
+//        tv_wait = findViewById(R.id.tv_wait);
+//        tv_selected = findViewById(R.id.tv_selected);
+//        tv_null = findViewById(R.id.tv_null);
+//
+//        tv_null.setOnClickListener(this);
 
-        tv_null.setOnClickListener(this);
-
+        findViewById(R.id.all).setOnClickListener(this);
         mDialog = new RfidDialog(mContext);
         mDialog.setDialogClickListener(this);
         mDialog.setCanceledOnTouchOutside(false);
@@ -404,8 +381,19 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
             case R.id.tv_success:
                 addDeviceInBom();
                 break;
-            case R.id.tv_null:
-                //mDialog.show();
+            case R.id.all:
+                bAll = !bAll;
+                for (Device d : devices) {
+                    d.setbAddWait(bAll);
+                    if (bAll) {
+                        wait_devicemap.put(d.getCode(), d);
+                    }
+                    adapter.notifyDataSetChanged();
+                }
+                if (!bAll) {
+                    wait_devicemap.clear();
+                }
+
                 break;
             default:
         }
@@ -503,7 +491,7 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    tv_total.setText("总数:" + rfidLocal.size());
+                    //tv_total.setText("总数:" + rfidLocal.size());
                     int unkown = 0;
                     Iterator<Map.Entry<String, RfidEntity>> iterator = rfidLocal.entrySet().iterator();
                     while (iterator.hasNext()) {
@@ -512,9 +500,9 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
                         }
                     }
 
-                    tv_wait.setText("可选:" + (rfidLocal.size() - unkown));
-                    tv_selected.setText("已备选:" + exists.size());
-                    tv_null.setText("未知:" + unkown);
+//                    tv_wait.setText("可选:" + (rfidLocal.size() - unkown));
+//                    tv_selected.setText("已备选:" + exists.size());
+//                    tv_null.setText("未知:" + unkown);
                 }
             });
 
@@ -536,19 +524,25 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
 
             } else {
                 //设备已经扫描到过
-                if (!rssiStr.equals(request.rssi)) {
+                //if (!rssiStr.equals(request.rssi)) {
                     //信号强度有变动， 找设备，然后修改，再设置
                     Iterator<Device> iterator = devices.iterator();
-                    boolean bEexist = false;
                     while (iterator.hasNext()) {
                         Device d = iterator.next();
-                        if (epc.equals(d.getRfid())) {
+                        if (epc.equals(d.getCode())) {
                             //设备已存在
+                            d.setScanCount(d.getScanCount() + 1);
                             d.setRfid(rssiStr);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    adapter.notifyDataSetChanged();
+                                }
+                            });
                             break;
                         }
                     }
-                }
+                //}
             }
 
             //未请求和请求失败的，需要进行请求
