@@ -8,57 +8,53 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <TextView
-        android:id="@+id/tv_top"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/x45"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHeight_percent="0.08"
-        android:background="@color/bg_top_blue"
-        android:text="@string/device_info"
-        android:gravity="center"
-        android:textColor="@color/bg_white"
-        android:textSize="@dimen/x20"
-        android:textStyle="bold"
-        />
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
-        >
-
-        <LinearLayout
+        android:layout_height="@dimen/x45">
+        <TextView
+            android:id="@+id/tv_top"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/x899"
-            android:orientation="vertical">
+            android:layout_height="@dimen/x45"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintHeight_percent="0.08"
+            android:background="@color/bg_top_blue"
+            android:text="@string/device_info"
+            android:gravity="center"
+            android:textColor="@color/bg_white"
+            android:textSize="@dimen/x20"
+            android:textStyle="bold"
+            />
+
+        <TextView
+            android:id="@+id/tv_device_edit"
+            android:layout_width="@dimen/x45"
+            android:layout_height="@dimen/x45"
+            android:text="@string/edit"
+            android:textColor="@color/bg_white"
+            android:layout_alignParentEnd="true"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textSize="@dimen/x18"
+            />
+    </RelativeLayout>
+
+<!--    <androidx.core.widget.NestedScrollView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="@dimen/x899"-->
+<!--        android:fillViewport="true"-->
+<!--        >-->
+
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="@dimen/x899"-->
+<!--            android:orientation="vertical">-->
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/id_scrollView"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/x899">
-
-                <TextView
-                    android:id="@+id/tv_device_edit"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintHorizontal_bias="0.95"
-                    app:layout_constraintVertical_bias="0.03"
-                    app:layout_constraintWidth_percent="0.15"
-                    app:layout_constraintHeight_percent="0.03"
-                    android:background="@drawable/edittext_rect_2rblue"
-                    android:text="@string/edit"
-                    android:textColor="@color/bg_white"
-                    android:gravity="center"
-                    android:textStyle="bold"
-                    android:textSize="@dimen/x18"
-                    />
+                android:layout_height="match_parent">
 
                 <TextView
                     android:id="@+id/tv_device_serial"
@@ -69,7 +65,7 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintHorizontal_bias="0.1"
-                    app:layout_constraintVertical_bias="0.09"
+                    app:layout_constraintVertical_bias="0.025"
                     app:layout_constraintWidth_percent="0.4"
                     app:layout_constraintHeight_percent="0.05"
                     android:text="设备系列"
@@ -86,7 +82,7 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toRightOf="@+id/tv_device_serial"
-                    app:layout_constraintVertical_bias="0.09"
+                    app:layout_constraintVertical_bias="0.025"
                     app:layout_constraintWidth_percent="0.5"
                     app:layout_constraintHeight_percent="0.05"
                     android:gravity="center|right"
@@ -102,7 +98,7 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintHorizontal_bias="0.1"
-                    app:layout_constraintVertical_bias="0.15"
+                    app:layout_constraintVertical_bias="0.085"
                     app:layout_constraintWidth_percent="0.4"
                     app:layout_constraintHeight_percent="0.05"
                     android:text="@string/device_type"
@@ -119,7 +115,7 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toRightOf="@+id/tv_device_type"
-                    app:layout_constraintVertical_bias="0.15"
+                    app:layout_constraintVertical_bias="0.085"
                     app:layout_constraintWidth_percent="0.5"
                     app:layout_constraintHeight_percent="0.05"
                     android:gravity="center|right"
@@ -135,7 +131,7 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintHorizontal_bias="0.1"
-                    app:layout_constraintVertical_bias="0.213"
+                    app:layout_constraintVertical_bias="0.145"
                     app:layout_constraintWidth_percent="0.4"
                     app:layout_constraintHeight_percent="0.05"
                     android:text="设备所属仓库"
@@ -152,7 +148,7 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toRightOf="@+id/tv_device_room"
-                    app:layout_constraintVertical_bias="0.213"
+                    app:layout_constraintVertical_bias="0.145"
                     app:layout_constraintWidth_percent="0.5"
                     app:layout_constraintHeight_percent="0.05"
                     android:gravity="center|right"
@@ -168,7 +164,7 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintHorizontal_bias="0.1"
-                    app:layout_constraintVertical_bias="0.274"
+                    app:layout_constraintVertical_bias="0.205"
                     app:layout_constraintWidth_percent="0.4"
                     app:layout_constraintHeight_percent="0.05"
                     android:text="设备编码"
@@ -185,7 +181,7 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toRightOf="@+id/tv_device_code"
-                    app:layout_constraintVertical_bias="0.274"
+                    app:layout_constraintVertical_bias="0.205"
                     app:layout_constraintWidth_percent="0.5"
                     app:layout_constraintHeight_percent="0.05"
                     android:gravity="center|right"
@@ -201,7 +197,7 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintHorizontal_bias="0.1"
-                    app:layout_constraintVertical_bias="0.336"
+                    app:layout_constraintVertical_bias="0.263"
                     app:layout_constraintWidth_percent="0.4"
                     app:layout_constraintHeight_percent="0.05"
                     android:text="仓储状态"
@@ -218,7 +214,7 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toRightOf="@+id/tv_device_status"
-                    app:layout_constraintVertical_bias="0.336"
+                    app:layout_constraintVertical_bias="0.263"
                     app:layout_constraintWidth_percent="0.5"
                     app:layout_constraintHeight_percent="0.05"
                     android:gravity="center|right"
@@ -234,7 +230,7 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintHorizontal_bias="0.1"
-                    app:layout_constraintVertical_bias="0.397"
+                    app:layout_constraintVertical_bias="0.324"
                     app:layout_constraintWidth_percent="0.4"
                     app:layout_constraintHeight_percent="0.05"
                     android:text="维修状态"
@@ -251,7 +247,7 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toRightOf="@+id/tv_device_repair"
-                    app:layout_constraintVertical_bias="0.397"
+                    app:layout_constraintVertical_bias="0.324"
                     app:layout_constraintWidth_percent="0.5"
                     app:layout_constraintHeight_percent="0.05"
                     android:gravity="center|right"
@@ -267,7 +263,7 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintHorizontal_bias="0.1"
-                    app:layout_constraintVertical_bias="0.46"
+                    app:layout_constraintVertical_bias="0.382"
                     app:layout_constraintWidth_percent="0.4"
                     app:layout_constraintHeight_percent="0.05"
                     android:text="备注"
@@ -284,7 +280,7 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toRightOf="@+id/tv_device_remark"
-                    app:layout_constraintVertical_bias="0.46"
+                    app:layout_constraintVertical_bias="0.382"
                     app:layout_constraintWidth_percent="0.5"
                     app:layout_constraintHeight_percent="0.05"
                     android:gravity="center|right"
@@ -300,7 +296,7 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintVertical_bias="0.55">
+                    app:layout_constraintVertical_bias="0.48">
 
                     <TextView
                         android:id="@+id/tv_out"
@@ -391,15 +387,24 @@
                         app:layout_constraintHorizontal_bias="0.9"/>
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
+
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recycler_center"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/bottom" />
             </androidx.constraintlayout.widget.ConstraintLayout>
-        </LinearLayout>
-    </ScrollView>
+
+<!--            <ListView-->
+<!--                android:id="@+id/recycler_center"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="@dimen/x400"-->
+<!--                android:background="@drawable/edittext_rect_dark_org"-->
+<!--                />-->
+<!--        </LinearLayout>-->
+<!--    </androidx.core.widget.NestedScrollView>-->
 </LinearLayout>

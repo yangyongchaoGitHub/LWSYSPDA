@@ -96,8 +96,8 @@ public class DeviceInfoActivity extends BascActivity implements OnItemClickListe
         tv_hapen = findViewById(R.id.tv_3);
 
         r_centerView = findViewById(R.id.recycler_center);
-        FullyLinearLayoutManager mLayoutManager = new FullyLinearLayoutManager(this);
-        r_centerView.setLayoutManager(mLayoutManager);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        r_centerView.setLayoutManager(layoutManager);
         adapter = new DeviceInfoUsingAdapter(R.layout.item_device_using, deviceUsingInfos);
         r_centerView.setAdapter(adapter);
         adapter.setOnItemClickListener(this);
@@ -149,6 +149,7 @@ public class DeviceInfoActivity extends BascActivity implements OnItemClickListe
             tv_in.setTextColor(getResources().getColor(R.color.bg_black));
             tv_hapen.setText("备注");
         }
+        Log.i(TAG, "code: " + device.getCode() + " type: " + type);
         BomService bomService = mRetrofit.create(BomService.class);
         Call<NetResult<List<DeviceUsingInfo>>> call = bomService.getDeviceInfo(device.getCode(), type);
 
@@ -161,8 +162,11 @@ public class DeviceInfoActivity extends BascActivity implements OnItemClickListe
                 }
                 Log.i(TAG, "onResponse" + result.getErrmsg() + " ! " +
                         result.getErrcode() + " " + result.getData().size());
-                deviceUsingInfos = result.getData();
-
+                for (DeviceUsingInfo dui: result.getData()) {
+                    Log.i(TAG, "== " + dui.getName() + " | " +dui.getDate() + " | " +dui.getRemark());
+                }
+                deviceUsingInfos.clear();
+                deviceUsingInfos.addAll(result.getData());
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -194,7 +198,11 @@ public class DeviceInfoActivity extends BascActivity implements OnItemClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.tv_device_edit:
-
+                DeviceUsingInfo deviceUsingInfo =new DeviceUsingInfo();
+                deviceUsingInfo.setName("2222");
+                adapter.addData(deviceUsingInfo);
+                adapter.notifyDataSetChanged();
+                Log.i(TAG, "-=-=-=-=-= " + deviceUsingInfos.size() + " " + deviceUsingInfos.get(1).getBomName());
                 break;
 
             case R.id.tv_out:
