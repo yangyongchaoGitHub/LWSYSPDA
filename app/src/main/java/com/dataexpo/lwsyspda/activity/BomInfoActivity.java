@@ -416,6 +416,11 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
     }
 
     private void addSeries(int series, int count) {
+        if (bom.getEndDate().getTime() < System.currentTimeMillis() || bom.getStatus().equals(4)) {
+            Toast.makeText(mContext, "已过期或设置了已完成，不能修改", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         BomService bomService = mRetrofit.create(BomService.class);
         BomSeriesVo bs = new BomSeriesVo();
         bs.setBomId(bom.getId());
@@ -531,6 +536,11 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
     }
 
     private void deleteBomDeviceSeries(int dsId) {
+        if (bom.getEndDate().getTime() < System.currentTimeMillis() || bom.getStatus().equals(4)) {
+            Toast.makeText(mContext, "已过期或设置了已完成，不能修改", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         BomService bomService = mRetrofit.create(BomService.class);
 
         Call<NetResult<String>> call = bomService.deleteBomSeries(dsId);
