@@ -24,10 +24,11 @@ import com.dataexpo.lwsyspda.adapter.DeviceChoiceAdapter;
 import com.dataexpo.lwsyspda.entity.BomDeviceVo;
 import com.dataexpo.lwsyspda.entity.Device;
 import com.dataexpo.lwsyspda.entity.NetResult;
-import com.dataexpo.lwsyspda.entity.RfidEntity;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
 import com.dataexpo.lwsyspda.rfid.BackResult;
 import com.dataexpo.lwsyspda.rfid.InventoryThread;
+import com.dataexpo.lwsyspda.rfid.scan.BackResultWScan;
+import com.dataexpo.lwsyspda.rfid.scan.ScanThread;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,7 +41,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class InboundChoiceActivity extends BascActivity implements OnItemClickListener, View.OnClickListener, BackResult {
+public class InboundChoiceActivity extends BascActivity implements OnItemClickListener, View.OnClickListener, BackResult, BackResultWScan {
     private static final String TAG = InboundChoiceActivity.class.getSimpleName();
     private Context mContext;
     Retrofit mRetrofit;
@@ -121,12 +122,13 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
         super.onResume();
         registerReceiver();
         InventoryThread.getInstance().setBr(this);
+        ScanThread.getInstance().setBr(this);
 
-        if (!InventoryThread.getInstance().isGoToRead()) {
-            //开启读卡模块
-            InventoryThread.getInstance().setGoToRead(true);
-            tv_rfid_status.setBackgroundResource(R.drawable.edittext_rect_green);
-        }
+//        if (!InventoryThread.getInstance().isGoToRead()) {
+//            //开启读卡模块
+//            InventoryThread.getInstance().setGoToRead(true);
+//            tv_rfid_status.setBackgroundResource(R.drawable.edittext_rect_green);
+//        }
     }
 
     @Override
@@ -186,18 +188,19 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
                             }
                         }
                         if (result.getErrcode() == -1) {
-                            Toast.makeText(mContext, "存在标签未绑定设备", Toast.LENGTH_SHORT).show();
                             if (requestDevice != null) {
                                 requestDevice.setRequestStatus(4);
+                                adapter.notifyDataSetChanged();
+                                Toast.makeText(mContext, "存在标签未绑定设备: " + requestDevice.getCode(), Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(mContext, "存在标签未绑定设备", Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             Log.i(TAG, "device name: " + result.getData().getName() + " id " + result.getData().getId());
                             Device device = result.getData();
                             if (requestDevice != null) {
-                                //设备出仓状态
                                 devices.remove(requestDevice);
 
-                                Log.i(TAG, "houseType: " + device.getHouseType() + " | " + exist.size() + " " + device.getCode());
                                 if (device.getHouseType().equals(1)) {
                                     device.setRssi(requestDevice.getRssi());
                                     device.setRequestStatus(3);
@@ -205,6 +208,9 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
                                     devices.add(device);
 
                                 } else {
+                                    if (requestDevice.getSrcType() == 2) {
+                                        Toast.makeText(mContext, "扫描到的设备已经入库", Toast.LENGTH_SHORT).show();
+                                    }
                                     exist.add(requestDevice);
                                 }
                                 adapter.notifyDataSetChanged();
@@ -257,11 +263,12 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
 
         while (iterator.hasNext()) {
             Device device = iterator.next();
-            if (device.isbAddWait()) {
+            if (device.isbAddWait() && device.getId() != null) {
                 devices.add(device);
             }
         }
         if (devices.size() == 0) {
+            Toast.makeText(mContext, "未选择设备或者选择的设备无效", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -326,7 +333,7 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
                     return;
                 }
             }
-            Device device = new Device();
+            Device device = null;
             //查找是否已存在
             for (Device d: devices) {
                 if (d.getCode().equals(epc)) {
@@ -336,7 +343,8 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
                 }
             }
 
-            if (device.getCode() == null) {
+            if (device == null) {
+                device = new Device();
                 device.setScanCount(1);
                 device.setCode(epc);
 
@@ -379,6 +387,68 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
         unregisterReceiver(keyReceiver);
     }
 
+    /**
+     * 扫码返回
+     * @param value string值
+     * @param bValue byte原值
+     */
+    @Override
+    public void postScanResult(String value, byte[] bValue) {
+        Log.i(TAG, "scan result : " + value);
+        if (value.length() < 10) {
+            //检查是否已经存在（q且已经从服务器返回数据）
+            for (Device d : exist) {
+                if (d.getCode().equals(value)) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(mContext, "扫描到的标签已入库: " + value,Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    return;
+                }
+            }
+
+            Device device = null;
+            //查找是否已存在
+            for (Device d: devices) {
+                if (d.getCode().equals(value)) {
+                    //标志从扫码扫到过
+                    d.setSrcType(2);
+                    device = d;
+                    break;
+                }
+            }
+
+            if (device == null) {
+                device = new Device();
+                device.setCode(value);
+                device.setSrcType(2);
+                devices.add(device);
+                //去查找服务器
+            }
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    adapter.notifyDataSetChanged();
+                }
+            });
+
+            if (device.getRequestStatus() == 0 || device.getRequestStatus() == 2) {
+                device.setRequestStatus(1);
+                queryDeviceInfoByRfid(device.getCode());
+            }
+        } else {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(mContext, "扫描到的标签码过长",Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
     private class KeyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -396,10 +466,20 @@ public class InboundChoiceActivity extends BascActivity implements OnItemClickLi
 //                }
 //                toast.show();
                 switch (keyCode) {
+                    case KeyEvent.KEYCODE_F4:
+                        try {
+                            if (ScanThread.getInstance().isbSupport()) {
+                                ScanThread.getInstance().scan();
+                            }
+
+                        } catch (Exception e) {
+                            Toast.makeText(mContext, "扫码功能串口连接失败", Toast.LENGTH_SHORT).show();
+                            e.printStackTrace();
+                        }
+                        break;
                     case KeyEvent.KEYCODE_F1:
                     case KeyEvent.KEYCODE_F2:
                     case KeyEvent.KEYCODE_F3:
-                    case KeyEvent.KEYCODE_F4:
                     case KeyEvent.KEYCODE_F5:
                     case KeyEvent.KEYCODE_F6:
                     case KeyEvent.KEYCODE_F7:

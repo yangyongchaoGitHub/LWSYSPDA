@@ -34,6 +34,8 @@ import com.dataexpo.lwsyspda.entity.RfidEntity;
 import com.dataexpo.lwsyspda.retrofitInf.BomService;
 import com.dataexpo.lwsyspda.rfid.BackResult;
 import com.dataexpo.lwsyspda.rfid.InventoryThread;
+import com.dataexpo.lwsyspda.rfid.scan.BackResultWScan;
+import com.dataexpo.lwsyspda.rfid.scan.ScanThread;
 import com.dataexpo.lwsyspda.view.RfidDialog;
 
 import java.util.ArrayList;
@@ -47,7 +49,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class DeviceChoiceActivity extends BascActivity implements OnItemClickListener, View.OnClickListener, RfidDialog.OnDialogClickListener, BackResult {
+public class DeviceChoiceActivity extends BascActivity implements OnItemClickListener, View.OnClickListener, RfidDialog.OnDialogClickListener, BackResult, BackResultWScan {
     private static final String TAG = DeviceChoiceActivity.class.getSimpleName();
     private Context mContext;
 
@@ -152,7 +154,6 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
 
         Call<NetResult<Device>> call = bomService.queryDeviceInfo(rfid);
 
-        Log.i(TAG, " call: " + call.hashCode());
         calls.put(call.hashCode() + "", rfid);
 
         call.enqueue(new Callback<NetResult<Device>>() {
@@ -277,13 +278,14 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
         super.onResume();
         Log.i(TAG, "onResume");
         InventoryThread.getInstance().setBr(this);
+        ScanThread.getInstance().setBr(this);
         registerReceiver();
 
-        if (!InventoryThread.getInstance().isGoToRead()) {
-            //开启读卡模块
-            InventoryThread.getInstance().setGoToRead(true);
-            tv_rfid_status.setBackgroundResource(R.drawable.edittext_rect_green);
-        }
+//        if (!InventoryThread.getInstance().isGoToRead()) {
+//            //开启读卡模块
+//            InventoryThread.getInstance().setGoToRead(true);
+//            tv_rfid_status.setBackgroundResource(R.drawable.edittext_rect_green);
+//        }
     }
 
 
@@ -532,7 +534,7 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
                         if (epc.equals(d.getCode())) {
                             //设备已存在
                             d.setScanCount(d.getScanCount() + 1);
-                            d.setRfid(rssiStr);
+                            d.setRssi(rssiStr);
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -573,6 +575,68 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
         unregisterReceiver(keyReceiver);
     }
 
+    /**
+     * 扫码返回
+     * @param value string值
+     * @param bValue byte原值
+     */
+    @Override
+    public void postScanResult(String value, byte[] bValue) {
+        if (value.length() < 10) {
+            //设备已在选择列表中则不再显示
+            for (Device ex: exists) {
+                if (ex.getCode().equals(value)) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(mContext, "扫描到的设备已在此项目备货: " + value, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    return;
+                }
+            }
+
+            RfidEntity request = rfidLocal.get(value);
+
+            //扫描到的设备不在已有列表中
+            if (request == null) {
+                request = new RfidEntity();
+                request.rfid = value;
+
+                rfidLocal.put(value, request);
+
+            } else {
+                //设备已经扫描到过
+                //if (!rssiStr.equals(request.rssi)) {
+                //信号强度有变动， 找设备，然后修改，再设置
+                Iterator<Device> iterator = devices.iterator();
+                while (iterator.hasNext()) {
+                    Device d = iterator.next();
+                    if (value.equals(d.getCode())) {
+                        //设备已存在
+                        d.setSrcType(2);
+                        d.setCode(value);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                adapter.notifyDataSetChanged();
+                            }
+                        });
+                        break;
+                    }
+                }
+                //}
+            }
+            request.srcType = 2;
+
+            //未请求和请求失败的，需要进行请求
+            if (request.status == 0 || request.status == 2) {
+                request.status = 1;
+                queryDeviceInfoByRfid(request.rfid);
+            }
+        }
+    }
+
     private class KeyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -590,10 +654,20 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
 //                }
 //                toast.show();
                 switch (keyCode) {
+                    case KeyEvent.KEYCODE_F4:
+                        try {
+                            if (ScanThread.getInstance().isbSupport()) {
+                                ScanThread.getInstance().scan();
+                            }
+
+                        } catch (Exception e) {
+                            Toast.makeText(mContext, "扫码功能串口连接失败", Toast.LENGTH_SHORT).show();
+                            e.printStackTrace();
+                        }
+                        break;
                     case KeyEvent.KEYCODE_F1:
                     case KeyEvent.KEYCODE_F2:
                     case KeyEvent.KEYCODE_F3:
-                    case KeyEvent.KEYCODE_F4:
                     case KeyEvent.KEYCODE_F5:
                     case KeyEvent.KEYCODE_F6:
                     case KeyEvent.KEYCODE_F7:

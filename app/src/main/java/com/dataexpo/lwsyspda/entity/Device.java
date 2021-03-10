@@ -38,6 +38,10 @@ public class Device implements Serializable {
     @JsonIgnore
     private String rssi;
 
+    //1 默认是rfid扫描获取； 2扫码获取
+    @JsonIgnore
+    private int srcType = 1;
+
     @JsonIgnore
     private boolean bAddWait = false;
 
@@ -46,7 +50,7 @@ public class Device implements Serializable {
     private Integer status;
 
     @JsonIgnore
-    private int scanCount;
+    private int scanCount = 0;
 
     //0未发起请求， 1请求中， 2请求返回失败， 3请求返回成功, 4请求返回未找到设备， 5已经入库（仅在入库界面使用）
     @JsonIgnore
@@ -180,5 +184,13 @@ public class Device implements Serializable {
 
     public void setRequestStatus(int requestStatus) {
         this.requestStatus = requestStatus;
+    }
+
+    public int getSrcType() {
+        return srcType;
+    }
+
+    public void setSrcType(int srcType) {
+        this.srcType = srcType;
     }
 }

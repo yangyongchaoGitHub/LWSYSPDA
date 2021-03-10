@@ -23,7 +23,9 @@ public class DeviceChoiceAdapter extends BaseQuickAdapter<Device, BaseViewHolder
                 .setText(R.id.tv_device_class, item.getClassName())
                 .setText(R.id.tv_room_name, item.getHouseName())
                 .setText(R.id.tv_series_name, item.getName())
-                .setText(R.id.tv_room_remark, "备注：" + item.getRemark())
+                .setText(R.id.tv_room_remark, item.getRequestStatus() == 1 ? "正在请求服务器" :
+                        (item.getRequestStatus() == 2 ? "服务器查询设备失败" :
+                                item.getRequestStatus() == 4 ? "编码未绑定设备" : "备注：" + item.getRemark()))
                 .setText(R.id.tv_device_rssi, item.getRssi())
                 .setText(R.id.tv_room_status, item.getHouseType() == null ? "未知" :
                         (item.getHouseType().equals(0) ? "在仓" : "出仓"))

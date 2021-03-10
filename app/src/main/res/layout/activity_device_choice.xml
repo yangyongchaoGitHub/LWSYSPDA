@@ -6,6 +6,32 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <TextView
+        android:id="@+id/tv_top"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/x45"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintHeight_percent="0.08"
+        android:background="@color/bg_top_blue"
+        android:text="感应到的设备"
+        android:gravity="center"
+        android:textColor="@color/bg_white"
+        android:textSize="@dimen/x20"
+        android:textStyle="bold"
+        />
+
+    <TextView
+        android:id="@+id/all"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/x45"
+        android:gravity="center"
+        android:text="全选"
+        android:textColor="@color/bg_white"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.2" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/top"
@@ -70,29 +96,29 @@
 <!--            app:layout_constraintWidth_percent="0.24"-->
 <!--            />-->
 
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:gravity="center"
-            android:text="感应到的设备"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.4" />
+<!--        <TextView-->
+<!--            android:id="@+id/title"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="0dp"-->
+<!--            android:gravity="center"-->
+<!--            android:text="感应到的设备"-->
+<!--            android:textStyle="bold"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintLeft_toLeftOf="parent"-->
+<!--            app:layout_constraintRight_toRightOf="parent"-->
+<!--            app:layout_constraintTop_toTopOf="parent"-->
+<!--            app:layout_constraintWidth_percent="0.4" />-->
 
-        <TextView
-            android:id="@+id/all"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:gravity="center"
-            android:text="全选"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.3" />
+<!--        <TextView-->
+<!--            android:id="@+id/all"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="0dp"-->
+<!--            android:gravity="center"-->
+<!--            android:text="全选"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintRight_toRightOf="parent"-->
+<!--            app:layout_constraintTop_toTopOf="parent"-->
+<!--            app:layout_constraintWidth_percent="0.3" />-->
 
         <TextView
             android:id="@+id/tv_rfid_status"
@@ -105,32 +131,7 @@
             app:layout_constraintHeight_percent="0.1"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <TextView
-        android:id="@+id/tv_top"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/x45"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHeight_percent="0.08"
-        android:background="@color/bg_top_blue"
-        android:text="@string/inroom"
-        android:gravity="center"
-        android:textColor="@color/bg_white"
-        android:textSize="@dimen/x20"
-        android:textStyle="bold"
-        />
 
-    <TextView
-        android:id="@+id/all"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/x45"
-        android:gravity="center"
-        android:text="全选"
-        android:textColor="@color/bg_white"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.2" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottom"
@@ -161,7 +162,7 @@
         android:layout_height="0dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/top"
+        app:layout_constraintTop_toBottomOf="@+id/tv_top"
         app:layout_constraintBottom_toTopOf="@+id/bottom"
         >
     </androidx.recyclerview.widget.RecyclerView>

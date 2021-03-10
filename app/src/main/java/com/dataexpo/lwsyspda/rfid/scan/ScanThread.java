@@ -35,6 +35,8 @@ public class ScanThread extends Thread {
     private Timer mTimer;
 
     boolean bSupport = false;
+    private boolean running = true;
+    private BackResultWScan br = null;
 
     public static ScanThread getInstance() {
         return ScanThread.MySingleton.instance;
@@ -51,6 +53,14 @@ public class ScanThread extends Thread {
         return bSupport;
     }
 
+    public BackResultWScan getBr() {
+        return br;
+    }
+
+    public void setBr(BackResultWScan br) {
+        this.br = br;
+    }
+
     /**
      * if throw exception, serialport initialize fail.
      *
@@ -60,7 +70,7 @@ public class ScanThread extends Thread {
     private ScanThread() {
     }
 
-    private void initSerialPort () throws IOException {
+    private void initSerialPort() throws SecurityException,IOException {
         if (bSupport) {
             return;
         }
@@ -88,7 +98,10 @@ public class ScanThread extends Thread {
             int size = 0;
             byte[] buffer = new byte[1024];
             int available = 0;
-            while (!isInterrupted()) {
+            while (!bSupport) {
+                sleep(20);
+            }
+            while (running) {
                 available = is.available();
 
                 if (available > 0) {
@@ -111,16 +124,17 @@ public class ScanThread extends Thread {
     private void sendMessege(byte[] data, int dataLen, int mode) {
         try {
 //            String dataStr = new String(data, 0, dataLen);
-            String dataStr = new String(data, 0, dataLen, "GBK");
-            Bundle bundle = new Bundle();
-            bundle.putString("data", dataStr);
+            String dataStr = new String(data, 0, dataLen, "GBK").replaceAll("\\s*|\t|\r|\n", "");;
+            //Bundle bundle = new Bundle();
+            //bundle.putString("data", dataStr);
             byte[] dataBytes = new byte[dataLen];
             System.arraycopy(data, 0, dataBytes, 0, dataLen);
-            bundle.putByteArray("dataBytes", dataBytes);
-            Message msg = new Message();
-            msg.what = mode;
-            msg.setData(bundle);
-            handler.sendMessage(msg);
+            //bundle.putByteArray("dataBytes", dataBytes);
+//            Message msg = new Message();
+//            msg.what = mode;
+//            msg.setData(bundle);
+//            handler.sendMessage(msg);
+            br.postScanResult(dataStr, dataBytes);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -149,12 +163,12 @@ public class ScanThread extends Thread {
             public void run() {
                 mSerialPort.scaner_trigoff();
                 Log.e(TAG, "scan terminate ");
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                handler.sendEmptyMessage(SCAN);
+//                try {
+//                    Thread.sleep(100);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//                handler.sendEmptyMessage(SCAN);
             }
         }, 3000);
     }
