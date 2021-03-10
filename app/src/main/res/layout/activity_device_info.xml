@@ -28,6 +28,7 @@
             />
 
         <TextView
+            android:visibility="gone"
             android:id="@+id/tv_device_edit"
             android:layout_width="@dimen/x45"
             android:layout_height="@dimen/x45"

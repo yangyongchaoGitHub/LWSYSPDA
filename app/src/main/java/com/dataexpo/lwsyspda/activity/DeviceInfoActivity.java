@@ -198,11 +198,6 @@ public class DeviceInfoActivity extends BascActivity implements OnItemClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.tv_device_edit:
-                DeviceUsingInfo deviceUsingInfo =new DeviceUsingInfo();
-                deviceUsingInfo.setName("2222");
-                adapter.addData(deviceUsingInfo);
-                adapter.notifyDataSetChanged();
-                Log.i(TAG, "-=-=-=-=-= " + deviceUsingInfos.size() + " " + deviceUsingInfos.get(1).getBomName());
                 break;
 
             case R.id.tv_out:

@@ -358,7 +358,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
             case R.id.tv_choice_parts:
                 //检查是否过期
                 if (bom.getEndDate().getTime() < System.currentTimeMillis() || bom.getStatus().equals(4)) {
-                    Toast.makeText(mContext, "已过期，不能修改", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mContext, "已过期或设置了已完成，不能修改", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 mDialog.show();
@@ -387,7 +387,7 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
             case R.id.tv_choice_device:
                 //检查过期
                 if (bom.getEndDate().getTime() < System.currentTimeMillis() || bom.getStatus().equals(4)) {
-                    Toast.makeText(mContext, "已过期，不能修改", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mContext, "已过期或设置了已完成，不能修改", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
