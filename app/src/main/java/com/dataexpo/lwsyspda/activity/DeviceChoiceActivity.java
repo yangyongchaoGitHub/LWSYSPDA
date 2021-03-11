@@ -37,6 +37,7 @@ import com.dataexpo.lwsyspda.rfid.InventoryThread;
 import com.dataexpo.lwsyspda.rfid.scan.BackResultWScan;
 import com.dataexpo.lwsyspda.rfid.scan.ScanThread;
 import com.dataexpo.lwsyspda.view.RfidDialog;
+import com.dataexpo.lwsyspda.view.SignSettingDialog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,7 +50,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class DeviceChoiceActivity extends BascActivity implements OnItemClickListener, View.OnClickListener, RfidDialog.OnDialogClickListener, BackResult, BackResultWScan {
+public class DeviceChoiceActivity extends BascActivity implements OnItemClickListener, View.OnClickListener, RfidDialog.OnDialogClickListener, BackResult, BackResultWScan, SignSettingDialog.OnDialogClickListener {
     private static final String TAG = DeviceChoiceActivity.class.getSimpleName();
     private Context mContext;
 
@@ -65,6 +66,7 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
     private RecyclerView r_centerView;
 
     private DeviceChoiceAdapter adapter;
+    private SignSettingDialog signSettingDialog;
 
     Retrofit mRetrofit;
 
@@ -249,9 +251,15 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
 
         findViewById(R.id.all).setOnClickListener(this);
         mDialog = new RfidDialog(mContext);
-        mDialog.setDialogClickListener(this);
         mDialog.setCanceledOnTouchOutside(false);
         mDialog.setCancelable(false);
+
+        tv_rfid_status.setOnClickListener(this);
+
+        signSettingDialog = new SignSettingDialog(mContext);
+        signSettingDialog.setDialogClickListener(this);
+        signSettingDialog.setCanceledOnTouchOutside(true);
+        signSettingDialog.setCancelable(true);
     }
 
     private void playSound() {
@@ -380,9 +388,14 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case  R.id.tv_rfid_status:
+                startOrStopRFID();
+                break;
+
             case R.id.tv_success:
                 addDeviceInBom();
                 break;
+
             case R.id.all:
                 bAll = !bAll;
                 for (Device d : devices) {
@@ -459,6 +472,7 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
     @Override
     protected void onPause() {
         Log.i(TAG, "onPause ");
+        unregisterReceiver();
 
         //关闭rfid
         if (InventoryThread.getInstance().isGoToRead()) {
@@ -470,11 +484,43 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
 
     //弹出框事件
     @Override
+    public void onSSDConfirmClick(View view) {
+        if (InventoryThread.getInstance().isGoToRead()) {
+            Toast.makeText(mContext, "关闭扫描才能进行频率设置", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int seekValue = signSettingDialog.SK1.getProgress();
+        int setting = 26;
+
+        if (seekValue == 0) {
+            setting = 16;
+        } else if (seekValue == 1) {
+            setting = 21;
+        } else if (seekValue == 2) {
+            setting = 26;
+        }
+
+        if (MyApplication.getMyApp().getManager().setOutputPower(setting)) {
+            Toast.makeText(mContext, "修改成功 ->" + setting, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(mContext, "修改失败", Toast.LENGTH_SHORT).show();
+        }
+
+        signSettingDialog.dismiss();
+    }
+
+    //弹出框事件
+    @Override
+    public void onSSDModifierClick(View view) {
+
+    }
+
+    @Override
     public void onConfirmClick(View view) {
         mDialog.dismiss();
     }
 
-    //弹出框事件
     @Override
     public void onModifierClick(View view) {
         mDialog.dismiss();
@@ -553,12 +599,6 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
                 queryDeviceInfoByRfid(request.rfid);
             }
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        unregisterReceiver();
-        super.onDestroy();
     }
 
     private KeyReceiver keyReceiver;
@@ -665,10 +705,33 @@ public class DeviceChoiceActivity extends BascActivity implements OnItemClickLis
                             e.printStackTrace();
                         }
                         break;
+
+                    case KeyEvent.KEYCODE_F3:
+                        //左边的黄色按键
+                        if (signSettingDialog.isShowing()) {
+                            //--
+                            if (signSettingDialog.SK1.getProgress() > 0) {
+                                signSettingDialog.SK1.setProgress(signSettingDialog.SK1.getProgress() - 1);
+                            }
+                        } else {
+                            signSettingDialog.show();
+                        }
+                        break;
+
+                    case KeyEvent.KEYCODE_F5:
+                        //右边的黄色按键
+                        if (signSettingDialog.isShowing()) {
+                            //++
+                            if (signSettingDialog.SK1.getProgress() < signSettingDialog.SK1.getMax()) {
+                                signSettingDialog.SK1.setProgress(signSettingDialog.SK1.getProgress() + 1);
+                            }
+                        } else {
+                            signSettingDialog.show();
+                        }
+                        break;
+
                     case KeyEvent.KEYCODE_F1:
                     case KeyEvent.KEYCODE_F2:
-                    case KeyEvent.KEYCODE_F3:
-                    case KeyEvent.KEYCODE_F5:
                     case KeyEvent.KEYCODE_F6:
                     case KeyEvent.KEYCODE_F7:
                         startOrStopRFID();

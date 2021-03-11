@@ -122,6 +122,7 @@ public class MainActivity extends BascActivity implements View.OnClickListener {
         InventoryThread.getInstance().setRuning(false);
 
         //InventoryThread.getInstance().destroy();
+        MyApplication.getMyApp().getManager().close();
         exit(0);
     }
 

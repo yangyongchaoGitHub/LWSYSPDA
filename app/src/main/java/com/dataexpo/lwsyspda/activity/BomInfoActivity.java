@@ -45,7 +45,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class BomInfoActivity extends BascActivity implements View.OnClickListener, DeviceDeleteListener, AccessoriesDialog.OnDialogClickListener, FittingDeleteListener {
+public class BomInfoActivity extends BascActivity implements View.OnClickListener, DeviceDeleteListener, FittingDeleteListener {
     private static final String TAG = BomInfoActivity.class.getSimpleName();
     private Context mContext;
 
@@ -331,7 +331,6 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
         });
 
         mDialog = new AccessoriesDialog(mContext);
-        mDialog.setDialogClickListener(this);
         mDialog.setCanceledOnTouchOutside(true);
         mDialog.setCancelable(true);
 
@@ -468,6 +467,10 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
     }
 
     private void deleteBomDevice(int groupPosition, int childPosition) {
+        if (bom.getEndDate().getTime() < System.currentTimeMillis() || bom.getStatus().equals(4)) {
+            Toast.makeText(mContext, "已过期或设置了已完成，不能修改", Toast.LENGTH_SHORT).show();
+            return;
+        }
         BomService bomService = mRetrofit.create(BomService.class);
         List<Device> dDevices = new ArrayList<>();
         BomDeviceVo bomDeviceVo = new BomDeviceVo();
@@ -515,16 +518,6 @@ public class BomInfoActivity extends BascActivity implements View.OnClickListene
                 Log.i(TAG, "onFailure" + t.toString());
             }
         });
-    }
-
-    @Override
-    public void onConfirmClick(View view) {
-
-    }
-
-    @Override
-    public void onModifierClick(View view) {
-
     }
 
     @Override

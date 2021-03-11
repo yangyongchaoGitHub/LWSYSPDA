@@ -41,7 +41,7 @@
         <TextView
             android:id="@+id/tv_rfid_status"
             android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_height="@dimen/x45"
             android:background="@drawable/edittext_rect_red"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"

@@ -1,7 +1,7 @@
 package com.dataexpo.lwsyspda.retrofitInf;
 
 public class URLs {
-    public static final String baseUrl = "http://192.168.0.111:8080/LWSYS/";
+    public static final String baseUrl = "http://192.168.0.115:8080/LWSYS/";
     //public static final String baseUrl = "http://lw.expoocr.com/";
 
     private static final String postfix = ".do";
